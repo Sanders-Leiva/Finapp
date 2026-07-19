@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+:root {
+  /* Default Theme (Emerald/Green) */
+  --primary-light: #ECFDF5;
+  --primary: #10B981;
+  --primary-dark: #064E3B;
+}
+
+.theme-pink {
+  /* Pink Theme */
+  --primary-light: #FDF2F8; /* pink-50 */
+  --primary: #EC4899;       /* pink-500 */
+  --primary-dark: #831843;  /* pink-900 */
+}
+
+@theme {
+  --color-brand-light: var(--primary-light);
+  --color-brand: var(--primary);
+  --color-brand-dark: var(--primary-dark);
+  --color-expense: #EF4444;
+  --font-sans: "Inter", "Roboto", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-brand-dark antialiased transition-colors duration-500;
+  }
+}
