@@ -91,7 +91,7 @@ export const GoalModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center sm:p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center sm:p-4 animate-in fade-in duration-200">
       <div 
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={closeGoalModal}
@@ -222,7 +222,7 @@ export const GoalModal = () => {
         </div>
 
         <div className="p-6 border-t border-gray-100 bg-gray-50 sm:rounded-b-3xl">
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col-reverse sm:flex-row gap-3">
             <button
               type="button"
               onClick={closeGoalModal}
