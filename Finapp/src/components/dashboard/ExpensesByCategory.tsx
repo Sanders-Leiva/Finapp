@@ -65,7 +65,7 @@ export const ExpensesByCategory = () => {
                 ))}
               </Pie>
               <Tooltip 
-                formatter={(value: number) => [`C$${value.toLocaleString('es-NI')}`, undefined]}
+                formatter={(value: any) => [`C$${Number(value).toLocaleString('es-NI')}`, undefined]}
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
               />
             </PieChart>
