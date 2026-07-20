@@ -21,9 +21,9 @@ const navItems = [
 
 export const Sidebar = () => {
   return (
-    <aside className="hidden sm:flex w-64 bg-white border-r border-gray-100 flex-col h-full">
+    <aside className="hidden sm:flex w-64 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex-col h-full transition-colors duration-500">
       {/* Logo Area */}
-      <div className="h-16 flex items-center px-6 border-b border-gray-100">
+      <div className="h-16 flex items-center px-6 border-b border-gray-100 dark:border-gray-800">
         <div className="flex items-center gap-2 text-brand font-bold text-xl">
           <div className="bg-brand-light p-1.5 rounded-lg">
             <Leaf className="w-6 h-6 text-brand" />
@@ -41,8 +41,8 @@ export const Sidebar = () => {
             className={({ isActive }) => clsx(
               "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative font-medium",
               isActive 
-                ? "text-brand bg-brand-light" 
-                : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                ? "text-brand bg-brand-light dark:bg-brand-900/20" 
+                : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100"
             )}
           >
             {({ isActive }) => (

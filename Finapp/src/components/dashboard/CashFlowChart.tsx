@@ -3,7 +3,14 @@ import { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 export const CashFlowChart = () => {
-  const { transactions } = useStore();
+  const { transactions, profile } = useStore();
+  const isDark = profile?.theme?.startsWith('dark');
+  const isPink = profile?.theme?.includes('pink');
+
+  const incomeColor = isPink ? '#EC4899' : '#10B981';
+  const expenseColor = isPink 
+    ? (isDark ? '#F472B6' : '#831843') 
+    : (isDark ? '#34D399' : '#064E3B');
 
   const data = useMemo(() => {
     // Tomamos los últimos 6 meses basados en la fecha actual (o las fechas de las txs)
@@ -46,16 +53,16 @@ export const CashFlowChart = () => {
 
   if (data.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6 flex flex-col h-[300px] items-center justify-center">
-        <h3 className="text-lg font-bold text-gray-400 mb-2">Flujo de Efectivo</h3>
-        <p className="text-gray-400">No hay datos suficientes para la gráfica</p>
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 mb-6 flex flex-col h-[300px] items-center justify-center transition-colors duration-500">
+        <h3 className="text-lg font-bold text-gray-400 dark:text-gray-500 mb-2">Flujo de Efectivo</h3>
+        <p className="text-gray-400 dark:text-gray-600">No hay datos suficientes para la gráfica</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-      <h3 className="text-lg font-bold text-brand-dark mb-6">Flujo de Efectivo (Ingresos vs Gastos)</h3>
+    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 mb-6 transition-colors duration-500">
+      <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-6">Flujo de Efectivo (Ingresos vs Gastos)</h3>
       <div className="h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
@@ -63,31 +70,37 @@ export const CashFlowChart = () => {
             margin={{ top: 5, right: 0, left: -20, bottom: 5 }}
             barSize={32}
           >
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? '#374151' : '#F3F4F6'} />
             <XAxis 
               dataKey="name" 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fill: '#9CA3AF', fontSize: 12 }}
+              tick={{ fill: isDark ? '#9CA3AF' : '#6B7280', fontSize: 12 }}
               dy={10}
             />
             <YAxis 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fill: '#9CA3AF', fontSize: 12 }}
+              tick={{ fill: isDark ? '#9CA3AF' : '#6B7280', fontSize: 12 }}
               tickFormatter={(value) => `C$${value}`}
             />
             <Tooltip
-              cursor={{ fill: '#F9FAFB' }}
-              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+              cursor={{ fill: isDark ? '#1F2937' : '#F9FAFB' }}
+              contentStyle={{ 
+                borderRadius: '8px', 
+                border: 'none', 
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                backgroundColor: isDark ? '#111827' : '#ffffff',
+                color: isDark ? '#F9FAFB' : '#111827'
+              }}
               formatter={(value: any) => [`C$${Number(value).toLocaleString('es-NI')}`, undefined]}
             />
             <Legend 
               iconType="circle" 
-              wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }}
+              wrapperStyle={{ fontSize: '12px', paddingTop: '20px', color: isDark ? '#D1D5DB' : '#374151' }}
             />
-            <Bar dataKey="ingresos" name="Ingresos" fill="#10B981" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="gastos" name="Gastos" fill="#064E3B" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="ingresos" name="Ingresos" fill={incomeColor} radius={[4, 4, 0, 0]} />
+            <Bar dataKey="gastos" name="Gastos" fill={expenseColor} radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

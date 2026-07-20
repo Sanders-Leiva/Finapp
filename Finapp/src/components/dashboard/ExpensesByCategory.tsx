@@ -3,7 +3,9 @@ import { useMemo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 export const ExpensesByCategory = () => {
-  const { transactions } = useStore();
+  const { transactions, profile } = useStore();
+  const isDark = profile?.theme?.startsWith('dark');
+  const isPink = profile?.theme?.includes('pink');
 
   const data = useMemo(() => {
     const expenses = transactions.filter(tx => tx.type === 'expense');
@@ -14,13 +16,16 @@ export const ExpensesByCategory = () => {
       return acc;
     }, {} as Record<string, number>);
 
-    // Mapear colores y nombres
     const categoryMap: Record<string, { name: string, color: string, icon: string }> = {
-      food: { name: 'Comida', color: '#10B981', icon: '🍔' },
-      transport: { name: 'Transporte', color: '#F59E0B', icon: '🚗' },
-      utilities: { name: 'Servicios', color: '#3B82F6', icon: '⚡' },
-      shopping: { name: 'Compras', color: '#EC4899', icon: '🛍️' },
-      entertainment: { name: 'Ocio', color: '#8B5CF6', icon: '🎮' },
+      food: { name: 'Comida', color: isPink ? '#EC4899' : '#10B981', icon: '🍔' },
+      transport: { name: 'Transporte', color: isPink ? '#F472B6' : '#F59E0B', icon: '🚗' },
+      utilities: { name: 'Servicios', color: '#3B82F6', icon: '💡' },
+      shopping: { name: 'Compras', color: isPink ? '#BE185D' : '#EC4899', icon: '🛍️' },
+      entertainment: { name: 'Ocio', color: '#8B5CF6', icon: '🎉' },
+      rent: { name: 'Alquiler', color: '#6366F1', icon: '🏠' },
+      health: { name: 'Salud', color: '#EF4444', icon: '💊' },
+      education: { name: 'Educación', color: '#0EA5E9', icon: '📚' },
+      other_expense: { name: 'Otros', color: '#6B7280', icon: '💸' },
     };
 
     return Object.entries(grouped).map(([key, value]) => ({
@@ -30,20 +35,20 @@ export const ExpensesByCategory = () => {
       icon: categoryMap[key]?.icon || '💰'
     })).sort((a, b) => b.value - a.value);
 
-  }, [transactions]);
+  }, [transactions, isPink]);
 
   if (data.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col h-full items-center justify-center min-h-[300px]">
-        <h3 className="text-lg font-bold text-gray-400 mb-2">Gastos por Categoría</h3>
-        <p className="text-gray-400">No hay gastos registrados aún</p>
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 flex flex-col h-full items-center justify-center min-h-[300px] transition-colors duration-500">
+        <h3 className="text-lg font-bold text-gray-400 dark:text-gray-500 mb-2">Gastos por Categoría</h3>
+        <p className="text-gray-400 dark:text-gray-600">No hay gastos registrados aún</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col h-full">
-      <h3 className="text-lg font-bold text-brand-dark mb-6">Gastos por Categoría</h3>
+    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 flex flex-col h-full transition-colors duration-500">
+      <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-6">Gastos por Categoría</h3>
       
       <div className="flex-1 flex items-center justify-between">
         {/* Chart */}
@@ -58,7 +63,8 @@ export const ExpensesByCategory = () => {
                 outerRadius={80}
                 paddingAngle={5}
                 dataKey="value"
-                stroke="none"
+                stroke={isDark ? '#111827' : '#ffffff'}
+                strokeWidth={2}
               >
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
@@ -66,7 +72,14 @@ export const ExpensesByCategory = () => {
               </Pie>
               <Tooltip 
                 formatter={(value: any) => [`C$${Number(value).toLocaleString('es-NI')}`, undefined]}
-                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                contentStyle={{ 
+                  borderRadius: '8px', 
+                  border: 'none', 
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  backgroundColor: isDark ? '#111827' : '#ffffff',
+                  color: isDark ? '#F9FAFB' : '#111827'
+                }}
+                itemStyle={{ color: isDark ? '#D1D5DB' : '#374151' }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -81,9 +94,9 @@ export const ExpensesByCategory = () => {
                   <span className="text-xl" role="img" aria-label={category.name}>
                     {category.icon}
                   </span>
-                  <span className="text-sm text-gray-600 font-medium">{category.name}</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">{category.name}</span>
                 </div>
-                <span className="text-sm font-bold text-brand-dark">
+                <span className="text-sm font-bold text-brand-dark dark:text-white">
                   C${category.value.toLocaleString('es-NI', { minimumFractionDigits: 2 })}
                 </span>
               </li>

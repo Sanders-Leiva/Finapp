@@ -9,7 +9,7 @@ import type { Currency } from '../../utils/currency';
 
 export const TransactionModal = () => {
   const { isTransactionModalOpen, closeTransactionModal, editingTransaction } = useModal();
-  const { user, accounts, transactions, setTransactions } = useStore();
+  const { user, accounts, setAccounts, transactions, setTransactions } = useStore();
   
   const [type, setType] = useState<'income' | 'expense'>('expense');
   const [currency, setCurrency] = useState<Currency>('NIO');
@@ -53,21 +53,49 @@ export const TransactionModal = () => {
     
     setIsSubmitting(true);
     try {
+      const numericAmount = parseFloat(amount);
       const payload = {
         user_id: user.id,
         account_id: accountId,
         title,
-        amount: parseFloat(amount),
+        amount: numericAmount,
         type,
         category,
         currency,
         date
       };
 
+      const account = accounts.find(a => a.id === accountId);
+
       if (editingTransaction) {
+        // Reverse old transaction effect
+        let newBalance = account ? account.balance : 0;
+        if (account) {
+          newBalance = editingTransaction.type === 'income' 
+            ? newBalance - editingTransaction.amount 
+            : newBalance + editingTransaction.amount;
+            
+          // Apply new transaction effect
+          newBalance = type === 'income' 
+            ? newBalance + numericAmount 
+            : newBalance - numericAmount;
+
+          await api.updateAccount(accountId, { balance: newBalance });
+          setAccounts(accounts.map(a => a.id === accountId ? { ...a, balance: newBalance } : a));
+        }
+
         const updatedTx = await api.updateTransaction(editingTransaction.id, payload);
         setTransactions(transactions.map(t => t.id === editingTransaction.id ? (updatedTx as import('../../services/api').Transaction) : t));
       } else {
+        if (account) {
+          const newBalance = type === 'income' 
+            ? account.balance + numericAmount 
+            : account.balance - numericAmount;
+            
+          await api.updateAccount(accountId, { balance: newBalance });
+          setAccounts(accounts.map(a => a.id === accountId ? { ...a, balance: newBalance } : a));
+        }
+
         const newTx = await api.createTransaction(payload);
         setTransactions([newTx as import('../../services/api').Transaction, ...transactions]);
       }
@@ -90,16 +118,16 @@ export const TransactionModal = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100 dark:border-gray-800">
         
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-brand-dark">
+        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-brand-dark dark:text-white">
             {editingTransaction ? 'Editar Transacción' : 'Nueva Transacción'}
           </h2>
           <button 
             onClick={closeTransactionModal}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -107,12 +135,12 @@ export const TransactionModal = () => {
 
         <div className="p-6">
           {/* Type Toggle */}
-          <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
+          <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mb-6">
             <button
               onClick={() => setType('income')}
               className={clsx(
                 "flex-1 py-2 text-sm font-semibold rounded-lg transition-all",
-                type === 'income' ? "bg-white text-brand shadow-sm" : "text-gray-500 hover:text-gray-700"
+                type === 'income' ? "bg-white dark:bg-gray-700 text-brand shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               )}
             >
               INGRESO
@@ -121,7 +149,7 @@ export const TransactionModal = () => {
               onClick={() => setType('expense')}
               className={clsx(
                 "flex-1 py-2 text-sm font-semibold rounded-lg transition-all",
-                type === 'expense' ? "bg-white text-expense shadow-sm" : "text-gray-500 hover:text-gray-700"
+                type === 'expense' ? "bg-white dark:bg-gray-700 text-expense shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               )}
             >
               GASTO
@@ -133,12 +161,12 @@ export const TransactionModal = () => {
             
             {/* Title */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Descripción</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="block w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-colors"
+                className="block w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-colors"
                 placeholder="Ej. Compra en el súper..."
                 required
               />
@@ -146,18 +174,18 @@ export const TransactionModal = () => {
 
             {/* Amount & Currency */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Monto</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monto</label>
               <div className="relative flex items-stretch">
                 <div className="relative">
                   <select 
                     value={currency}
                     onChange={(e) => setCurrency(e.target.value as Currency)}
-                    className="appearance-none h-full py-0 pl-4 pr-8 bg-gray-50 border border-r-0 border-gray-200 rounded-l-xl text-gray-700 font-bold focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand cursor-pointer"
+                    className="appearance-none h-full py-0 pl-4 pr-8 bg-gray-50 dark:bg-gray-700 border border-r-0 border-gray-200 dark:border-gray-600 rounded-l-xl text-gray-700 dark:text-gray-200 font-bold focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand cursor-pointer"
                   >
                     <option value="NIO">C$</option>
                     <option value="USD">$</option>
                   </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-400">
                     <ChevronDown className="w-4 h-4" />
                   </div>
                 </div>
@@ -167,7 +195,7 @@ export const TransactionModal = () => {
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   className={clsx(
-                    "block w-full px-4 py-3 border border-gray-200 rounded-r-xl text-lg font-bold bg-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-colors",
+                    "block w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-r-xl text-lg font-bold bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-colors",
                     type === 'income' ? 'text-brand' : 'text-expense'
                   )}
                   placeholder="0.00"
@@ -178,12 +206,12 @@ export const TransactionModal = () => {
 
             {/* Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha</label>
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="block w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-colors"
+                className="block w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-colors"
                 required
               />
             </div>
@@ -191,12 +219,12 @@ export const TransactionModal = () => {
             <div className="grid grid-cols-2 gap-4">
               {/* Category */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Categoría</label>
                 <div className="relative">
                   <select 
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="appearance-none block w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-colors cursor-pointer"
+                    className="appearance-none block w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-colors cursor-pointer"
                   >
                     {type === 'expense' ? (
                       <>
@@ -205,6 +233,10 @@ export const TransactionModal = () => {
                         <option value="utilities">Servicios 💡</option>
                         <option value="shopping">Compras 🛍️</option>
                         <option value="entertainment">Ocio 🎉</option>
+                        <option value="rent">Alquiler 🏠</option>
+                        <option value="health">Salud 💊</option>
+                        <option value="education">Educación 📚</option>
+                        <option value="other_expense">Otros Gastos 💸</option>
                       </>
                     ) : (
                       <>
@@ -214,7 +246,7 @@ export const TransactionModal = () => {
                       </>
                     )}
                   </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-400">
                     <ChevronDown className="w-4 h-4" />
                   </div>
                 </div>
@@ -222,19 +254,19 @@ export const TransactionModal = () => {
 
               {/* Account */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Cuenta</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cuenta</label>
                 <div className="relative">
                   <select 
                     value={accountId}
                     onChange={(e) => setAccountId(e.target.value)}
-                    className="appearance-none block w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-colors cursor-pointer"
+                    className="appearance-none block w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-colors cursor-pointer"
                     required
                   >
                     {accounts.map(acc => (
                       <option key={acc.id} value={acc.id}>{acc.name} {acc.icon}</option>
                     ))}
                   </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-400">
                     <ChevronDown className="w-4 h-4" />
                   </div>
                 </div>
@@ -243,20 +275,20 @@ export const TransactionModal = () => {
 
             {/* Note */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nota (Opcional)</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nota (Opcional)</label>
               <textarea
                 rows={2}
-                className="block w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-colors resize-none"
+                className="block w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-colors resize-none"
                 placeholder="Detalles de la transacción..."
               />
             </div>
 
             {/* Actions */}
-            <div className="pt-4 flex items-center justify-end gap-3 border-t border-gray-100">
+            <div className="pt-4 flex items-center justify-end gap-3 border-t border-gray-100 dark:border-gray-800">
               <button
                 type="button"
                 onClick={closeTransactionModal}
-                className="px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
+                className="px-5 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
               >
                 Cancelar
               </button>

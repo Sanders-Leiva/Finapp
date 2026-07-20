@@ -24,7 +24,6 @@ export const AccountModal = () => {
   
   const [name, setName] = useState('');
   const [type, setType] = useState('bank');
-  const [balance, setBalance] = useState('');
   const [currency, setCurrency] = useState<Currency>('NIO');
   const [icon, setIcon] = useState('🏦');
   const [color, setColor] = useState(COLORS[0]);
@@ -34,14 +33,12 @@ export const AccountModal = () => {
     if (editingAccount) {
       setName(editingAccount.name);
       setType(editingAccount.type);
-      setBalance(editingAccount.balance.toString());
       setCurrency(editingAccount.currency as Currency);
       setIcon(editingAccount.icon);
       setColor(editingAccount.color);
     } else {
       setName('');
       setType('bank');
-      setBalance('');
       setIcon('🏦');
       setColor(COLORS[0]);
     }
@@ -51,7 +48,7 @@ export const AccountModal = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !balance) return;
+    if (!name) return;
     
     setIsSubmitting(true);
     try {
@@ -59,7 +56,7 @@ export const AccountModal = () => {
         user_id: user.id,
         name,
         type,
-        balance: parseFloat(balance),
+        balance: editingAccount ? editingAccount.balance : 0,
         currency,
         icon,
         color
@@ -163,23 +160,9 @@ export const AccountModal = () => {
 
             {/* Balance & Currency */}
             <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-2">
+              <div className="col-span-3">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Saldo Inicial
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
-                  value={balance}
-                  onChange={(e) => setBalance(e.target.value)}
-                  placeholder="0.00"
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all text-gray-900"
-                />
-              </div>
-              <div className="col-span-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Moneda
+                  Moneda Base
                 </label>
                 <select
                   value={currency}

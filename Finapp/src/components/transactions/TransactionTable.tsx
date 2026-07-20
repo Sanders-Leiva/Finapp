@@ -9,7 +9,7 @@ import clsx from 'clsx';
 import Swal from 'sweetalert2';
 
 export const TransactionTable = () => {
-  const { transactions, setTransactions } = useStore();
+  const { transactions, setTransactions, accounts, setAccounts } = useStore();
   const { openTransactionModal } = useModal();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
@@ -29,6 +29,20 @@ export const TransactionTable = () => {
     
     setIsDeleting(id);
     try {
+      const txToDelete = transactions.find(t => t.id === id);
+      
+      if (txToDelete) {
+        const account = accounts.find(a => a.id === txToDelete.account_id);
+        if (account) {
+          const newBalance = txToDelete.type === 'income' 
+            ? account.balance - txToDelete.amount 
+            : account.balance + txToDelete.amount;
+            
+          await api.updateAccount(account.id, { balance: newBalance });
+          setAccounts(accounts.map(a => a.id === account.id ? { ...a, balance: newBalance } : a));
+        }
+      }
+
       await api.deleteTransaction(id);
       setTransactions(transactions.filter(t => t.id !== id));
       Swal.fire({
@@ -53,11 +67,11 @@ export const TransactionTable = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden transition-colors duration-500">
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full min-w-[600px] text-left border-collapse">
           <thead>
-            <tr className="border-b border-gray-100 bg-gray-50/50">
+            <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
               <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Detalle</th>
               <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Categoría</th>
               <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Cuenta</th>
@@ -65,26 +79,26 @@ export const TransactionTable = () => {
               <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Acciones</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
             {transactions.map((tx) => (
-              <tr key={tx.id} className="group hover:bg-gray-50/50 transition-colors">
+              <tr key={tx.id} className="group hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
                 
                 {/* 1. Icon & Detail */}
                 <td className="py-4 px-6">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center text-xl shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-brand-light dark:bg-brand-900/20 flex items-center justify-center text-xl shrink-0">
                       {tx.category === 'food' ? '🛒' : tx.category === 'transport' ? '🚗' : tx.category === 'salary' ? '💰' : '📝'}
                     </div>
                     <div>
-                      <p className="font-semibold text-brand-dark">{tx.title}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{formatDate(tx.date)}</p>
+                      <p className="font-semibold text-brand-dark dark:text-white">{tx.title}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{formatDate(tx.date)}</p>
                     </div>
                   </div>
                 </td>
 
                 {/* 2. Category Badge */}
                 <td className="py-4 px-6">
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-brand-light text-brand-dark">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-brand-light dark:bg-brand-900/20 text-brand-dark dark:text-brand-light">
                     {tx.category}
                   </span>
                 </td>
@@ -93,7 +107,7 @@ export const TransactionTable = () => {
                 <td className="py-4 px-6">
                   <div className="flex items-center gap-2">
                     <span>{tx.account?.icon || '🏦'}</span>
-                    <span className="text-sm text-gray-600 font-medium">{tx.account?.name || 'Cuenta'}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">{tx.account?.name || 'Cuenta'}</span>
                   </div>
                 </td>
 
@@ -101,7 +115,7 @@ export const TransactionTable = () => {
                 <td className="py-4 px-6 text-right">
                   <div className={clsx(
                     "text-sm font-bold",
-                    tx.type === 'income' ? 'text-brand' : 'text-gray-900'
+                    tx.type === 'income' ? 'text-brand' : 'text-gray-900 dark:text-white'
                   )}>
                     {tx.type === 'income' ? '+' : ''}
                     {formatCurrency(Math.abs(tx.amount), tx.currency as Currency)}
@@ -113,7 +127,7 @@ export const TransactionTable = () => {
                   <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button 
                       onClick={() => openTransactionModal(tx)}
-                      className="p-2 text-gray-400 hover:text-brand hover:bg-brand-light rounded-lg transition-colors" 
+                      className="p-2 text-gray-400 hover:text-brand hover:bg-brand-light dark:hover:bg-brand-900/20 rounded-lg transition-colors" 
                       title="Editar"
                     >
                       <Edit2 className="w-4 h-4" />
@@ -121,7 +135,7 @@ export const TransactionTable = () => {
                     <button 
                       onClick={() => handleDelete(tx.id)}
                       disabled={isDeleting === tx.id}
-                      className="p-2 text-gray-400 hover:text-expense hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50" 
+                      className="p-2 text-gray-400 hover:text-expense hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50" 
                       title="Borrar"
                     >
                       {isDeleting === tx.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}

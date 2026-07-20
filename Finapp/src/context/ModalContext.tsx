@@ -22,6 +22,11 @@ interface ModalContextType {
   editingGoal: Goal | null;
   openGoalModal: (goal?: Goal) => void;
   closeGoalModal: () => void;
+
+  isGoalContributionModalOpen: boolean;
+  contributingGoal: Goal | null;
+  openGoalContributionModal: (goal: Goal) => void;
+  closeGoalContributionModal: () => void;
 }
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);
@@ -38,6 +43,9 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
 
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
+
+  const [isGoalContributionModalOpen, setIsGoalContributionModalOpen] = useState(false);
+  const [contributingGoal, setContributingGoal] = useState<Goal | null>(null);
 
   const openTransactionModal = (tx?: Transaction) => {
     if (tx) setEditingTransaction(tx);
@@ -79,6 +87,15 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     setTimeout(() => setEditingGoal(null), 200);
   };
 
+  const openGoalContributionModal = (goal: Goal) => {
+    setContributingGoal(goal);
+    setIsGoalContributionModalOpen(true);
+  };
+  const closeGoalContributionModal = () => {
+    setIsGoalContributionModalOpen(false);
+    setTimeout(() => setContributingGoal(null), 200);
+  };
+
   return (
     <ModalContext.Provider
       value={{
@@ -98,6 +115,10 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
         editingGoal,
         openGoalModal,
         closeGoalModal,
+        isGoalContributionModalOpen,
+        contributingGoal,
+        openGoalContributionModal,
+        closeGoalContributionModal,
       }}
     >
       {children}

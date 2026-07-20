@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
 
 :root {
   /* Default Theme (Emerald/Green) */
@@ -24,6 +25,6 @@
 
 @layer base {
   body {
-    @apply bg-gray-50 text-brand-dark antialiased transition-colors duration-500;
+    @apply bg-gray-50 dark:bg-gray-900 text-brand-dark dark:text-gray-100 antialiased transition-colors duration-500;
   }
 }

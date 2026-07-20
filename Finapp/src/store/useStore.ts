@@ -7,7 +7,7 @@ export interface UserProfile {
   id: string;
   name: string;
   avatar: string;
-  theme: 'green' | 'pink' | 'dark';
+  theme: 'green' | 'pink' | 'dark' | 'dark-pink';
 }
 
 interface AppState {

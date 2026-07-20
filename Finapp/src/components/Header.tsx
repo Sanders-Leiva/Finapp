@@ -15,7 +15,7 @@ export const Header = () => {
     await supabase.auth.signOut();
   };
 
-  const changeTheme = async (theme: 'green' | 'pink' | 'dark') => {
+  const changeTheme = async (theme: 'green' | 'pink' | 'dark' | 'dark-pink') => {
     if (!profile) return;
     
     // Optimizacion optimista
@@ -30,9 +30,9 @@ export const Header = () => {
   };
 
   return (
-    <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 sticky top-0 z-10">
+    <header className="h-16 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between px-6 sticky top-0 z-10 transition-colors duration-500">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">
           Hola, {profile?.name || "Usuario"} 👋
         </h1>
       </div>
@@ -56,9 +56,9 @@ export const Header = () => {
         </button>
 
         {/* Notifications */}
-        <button className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors hidden sm:block">
+        <button className="relative p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors hidden sm:block">
           <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand rounded-full border-2 border-white"></span>
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand rounded-full border-2 border-white dark:border-gray-900"></span>
         </button>
 
         {/* Theme Selector */}
@@ -72,15 +72,18 @@ export const Header = () => {
           </button>
           
           {isThemeOpen && (
-            <div className="absolute right-0 mt-2 w-36 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
-              <button onClick={() => changeTheme('green')} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-emerald-500"></div> Verde
+            <div className="absolute right-0 mt-2 w-36 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 py-2 z-50">
+              <button onClick={() => changeTheme('green')} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 dark:hover:text-green-400 flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500"></div> Verde Claro
               </button>
-              <button onClick={() => changeTheme('pink')} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-700 flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-pink-500"></div> Rosa
+              <button onClick={() => changeTheme('pink')} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-pink-50 dark:hover:bg-pink-900/20 hover:text-pink-700 dark:hover:text-pink-400 flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-pink-500"></div> Rosa Claro
               </button>
-              <button onClick={() => changeTheme('dark')} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-gray-900"></div> Oscuro
+              <button onClick={() => changeTheme('dark')} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-gray-900 dark:bg-white border border-gray-200 dark:border-gray-700"></div> Verde Oscuro
+              </button>
+              <button onClick={() => changeTheme('dark-pink')} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-pink-900 dark:bg-pink-300 border border-gray-200 dark:border-gray-700"></div> Rosa Oscuro
               </button>
             </div>
           )}
@@ -89,7 +92,7 @@ export const Header = () => {
         {/* Logout Button */}
         <button 
           onClick={handleLogout}
-          className="p-2 text-gray-400 hover:text-expense hover:bg-red-50 rounded-full transition-colors ml-2"
+          className="p-2 text-gray-400 hover:text-expense hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full transition-colors ml-2"
           title="Cerrar Sesión"
         >
           <LogOut className="w-5 h-5" />

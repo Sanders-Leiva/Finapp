@@ -6,10 +6,11 @@ import { TransactionModal } from '../components/transactions/TransactionModal';
 import { AccountModal } from '../components/accounts/AccountModal';
 import { BudgetModal } from '../components/budgets/BudgetModal';
 import { GoalModal } from '../components/goals/GoalModal';
+import { GoalContributionModal } from '../components/goals/GoalContributionModal';
 
 export const MainLayout = () => {
   return (
-    <div className="flex h-screen bg-gray-50 font-sans overflow-hidden">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 font-sans overflow-hidden transition-colors duration-500">
       <Sidebar />
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
@@ -28,6 +29,7 @@ export const MainLayout = () => {
         <AccountModal />
         <BudgetModal />
         <GoalModal />
+        <GoalContributionModal />
         <BottomNav />
       </div>
     </div>

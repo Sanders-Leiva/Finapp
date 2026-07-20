@@ -94,10 +94,15 @@ function App() {
 
   // Theme injection
   useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove('theme-pink', 'dark');
+    
     if (profile?.theme === 'pink') {
-      document.documentElement.classList.add('theme-pink');
-    } else {
-      document.documentElement.classList.remove('theme-pink');
+      root.classList.add('theme-pink');
+    } else if (profile?.theme === 'dark') {
+      root.classList.add('dark');
+    } else if (profile?.theme === 'dark-pink') {
+      root.classList.add('dark', 'theme-pink');
     }
   }, [profile]);
 
