@@ -98,7 +98,7 @@ export const TransactionTable = () => {
 
                 {/* 2. Category Badge */}
                 <td className="py-4 px-6">
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-brand-light dark:bg-brand-900/20 text-brand-dark dark:text-brand-light">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-brand-light dark:bg-pink-900/40 text-brand-dark dark:text-pink-200">
                     {tx.category}
                   </span>
                 </td>

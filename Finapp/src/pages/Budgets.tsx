@@ -96,7 +96,9 @@ export const Budgets = () => {
             })
             .reduce((sum, t) => sum + t.amount, 0);
 
-          const percentage = Math.min((currentMonthSpent / budget.total_amount) * 100, 100);
+          const percentage = budget.total_amount > 0 
+            ? Math.min((currentMonthSpent / budget.total_amount) * 100, 100) 
+            : 0;
           
           let statusColor = "bg-brand";
           if (percentage >= 100) statusColor = "bg-expense";

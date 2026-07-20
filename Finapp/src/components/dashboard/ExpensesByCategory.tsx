@@ -5,8 +5,6 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 export const ExpensesByCategory = () => {
   const { transactions, profile } = useStore();
   const isDark = profile?.theme?.startsWith('dark');
-  const isPink = profile?.theme?.includes('pink');
-
   const data = useMemo(() => {
     const expenses = transactions.filter(tx => tx.type === 'expense');
     
@@ -17,15 +15,15 @@ export const ExpensesByCategory = () => {
     }, {} as Record<string, number>);
 
     const categoryMap: Record<string, { name: string, color: string, icon: string }> = {
-      food: { name: 'Comida', color: isPink ? '#EC4899' : '#10B981', icon: '🍔' },
-      transport: { name: 'Transporte', color: isPink ? '#F472B6' : '#F59E0B', icon: '🚗' },
-      utilities: { name: 'Servicios', color: '#3B82F6', icon: '💡' },
-      shopping: { name: 'Compras', color: isPink ? '#BE185D' : '#EC4899', icon: '🛍️' },
-      entertainment: { name: 'Ocio', color: '#8B5CF6', icon: '🎉' },
-      rent: { name: 'Alquiler', color: '#6366F1', icon: '🏠' },
-      health: { name: 'Salud', color: '#EF4444', icon: '💊' },
-      education: { name: 'Educación', color: '#0EA5E9', icon: '📚' },
-      other_expense: { name: 'Otros', color: '#6B7280', icon: '💸' },
+      food: { name: 'Comida', color: '#EC4899', icon: '🍔' }, // pink-500
+      transport: { name: 'Transporte', color: '#F472B6', icon: '🚗' }, // pink-400
+      utilities: { name: 'Servicios', color: '#FBCFE8', icon: '💡' }, // pink-200
+      shopping: { name: 'Compras', color: '#BE185D', icon: '🛍️' }, // pink-700
+      entertainment: { name: 'Ocio', color: '#831843', icon: '🎉' }, // pink-900
+      rent: { name: 'Alquiler', color: '#FDA4AF', icon: '🏠' }, // rose-300
+      health: { name: 'Salud', color: '#E11D48', icon: '💊' }, // rose-600
+      education: { name: 'Educación', color: '#F43F5E', icon: '📚' }, // rose-500
+      other_expense: { name: 'Otros', color: '#9CA3AF', icon: '💸' }, // gray-400
     };
 
     return Object.entries(grouped).map(([key, value]) => ({
@@ -35,7 +33,7 @@ export const ExpensesByCategory = () => {
       icon: categoryMap[key]?.icon || '💰'
     })).sort((a, b) => b.value - a.value);
 
-  }, [transactions, isPink]);
+  }, [transactions]);
 
   if (data.length === 0) {
     return (

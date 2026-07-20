@@ -7,10 +7,8 @@ export const CashFlowChart = () => {
   const isDark = profile?.theme?.startsWith('dark');
   const isPink = profile?.theme?.includes('pink');
 
-  const incomeColor = isPink ? '#EC4899' : '#10B981';
-  const expenseColor = isPink 
-    ? (isDark ? '#F472B6' : '#831843') 
-    : (isDark ? '#34D399' : '#064E3B');
+  const incomeColor = '#EC4899'; // pink-500
+  const expenseColor = '#F472B6'; // pink-400
 
   const data = useMemo(() => {
     // Tomamos los últimos 6 meses basados en la fecha actual (o las fechas de las txs)

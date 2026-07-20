@@ -56,7 +56,9 @@ export const Goals = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {goals.map((goal) => {
-          const percentage = Math.min((goal.current_amount / goal.target_amount) * 100, 100);
+          const percentage = goal.target_amount > 0 
+            ? Math.min((goal.current_amount / goal.target_amount) * 100, 100) 
+            : 0;
           const donutData = [
             { name: 'Completado', value: percentage },
             { name: 'Faltante', value: 100 - percentage },

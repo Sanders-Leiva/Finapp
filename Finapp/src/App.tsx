@@ -16,7 +16,7 @@ import { api } from './services/api';
 import { Loader2 } from 'lucide-react';
 
 function App() {
-  const { user, profile, setUser, setProfile, isAppLoading, setIsAppLoading } = useStore();
+  const { user, setUser, setProfile, isAppLoading, setIsAppLoading } = useStore();
 
   useEffect(() => {
     let mounted = true;
@@ -95,16 +95,8 @@ function App() {
   // Theme injection
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove('theme-pink', 'dark');
-    
-    if (profile?.theme === 'pink') {
-      root.classList.add('theme-pink');
-    } else if (profile?.theme === 'dark') {
-      root.classList.add('dark');
-    } else if (profile?.theme === 'dark-pink') {
-      root.classList.add('dark', 'theme-pink');
-    }
-  }, [profile]);
+    root.classList.add('dark', 'theme-pink');
+  }, []);
 
   if (isAppLoading) {
     return (

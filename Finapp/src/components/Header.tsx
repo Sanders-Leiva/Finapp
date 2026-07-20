@@ -1,5 +1,4 @@
-import { Bell, LogOut, Palette, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { Bell, LogOut, Plus } from 'lucide-react';
 import { useModal } from '../context/ModalContext';
 import { useStore } from '../store/useStore';
 import { supabase } from '../lib/supabase';
@@ -8,25 +7,9 @@ import { supabase } from '../lib/supabase';
 
 export const Header = () => {
   const { openTransactionModal } = useModal();
-  const { profile, setProfile } = useStore();
-  const [isThemeOpen, setIsThemeOpen] = useState(false);
-
+  const { profile } = useStore();
   const handleLogout = async () => {
     await supabase.auth.signOut();
-  };
-
-  const changeTheme = async (theme: 'green' | 'pink' | 'dark' | 'dark-pink') => {
-    if (!profile) return;
-    
-    // Optimizacion optimista
-    setProfile({ ...profile, theme });
-    setIsThemeOpen(false);
-
-    // Guardar en Supabase
-    await supabase
-      .from('profiles')
-      .update({ theme })
-      .eq('id', profile.id);
   };
 
   return (
@@ -61,33 +44,7 @@ export const Header = () => {
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand rounded-full border-2 border-white dark:border-gray-900"></span>
         </button>
 
-        {/* Theme Selector */}
-        <div className="relative">
-          <button 
-            onClick={() => setIsThemeOpen(!isThemeOpen)}
-            className="p-2 text-gray-400 hover:text-brand hover:bg-brand-light rounded-full transition-colors"
-            title="Cambiar Tema"
-          >
-            <Palette className="w-5 h-5" />
-          </button>
-          
-          {isThemeOpen && (
-            <div className="absolute right-0 mt-2 w-36 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 py-2 z-50">
-              <button onClick={() => changeTheme('green')} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 dark:hover:text-green-400 flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-emerald-500"></div> Verde Claro
-              </button>
-              <button onClick={() => changeTheme('pink')} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-pink-50 dark:hover:bg-pink-900/20 hover:text-pink-700 dark:hover:text-pink-400 flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-pink-500"></div> Rosa Claro
-              </button>
-              <button onClick={() => changeTheme('dark')} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-gray-900 dark:bg-white border border-gray-200 dark:border-gray-700"></div> Verde Oscuro
-              </button>
-              <button onClick={() => changeTheme('dark-pink')} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-pink-900 dark:bg-pink-300 border border-gray-200 dark:border-gray-700"></div> Rosa Oscuro
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Log Out */}
 
         {/* Logout Button */}
         <button 

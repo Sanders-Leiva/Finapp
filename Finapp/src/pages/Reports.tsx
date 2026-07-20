@@ -10,9 +10,7 @@ import { useStore } from '../store/useStore';
 export const Reports = () => {
   const { profile } = useStore();
   const isDark = profile?.theme?.startsWith('dark');
-  const isPink = profile?.theme?.includes('pink');
-
-  const balanceColor = isPink ? '#EC4899' : '#10B981';
+  const balanceColor = '#EC4899'; // pink-500
 
   return (
     <div className="animate-in fade-in duration-500">

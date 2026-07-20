@@ -23,7 +23,7 @@ export const TransactionModal = () => {
   // Pre-fill if editing
   useEffect(() => {
     if (editingTransaction) {
-      setType(editingTransaction.type);
+      setType(editingTransaction.type as 'income' | 'expense');
       setCurrency(editingTransaction.currency as Currency);
       setAmount(editingTransaction.amount.toString());
       setDate(editingTransaction.date.split('T')[0]);
@@ -68,23 +68,40 @@ export const TransactionModal = () => {
       const account = accounts.find(a => a.id === accountId);
 
       if (editingTransaction) {
-        // Reverse old transaction effect
-        let newBalance = account ? account.balance : 0;
-        if (account) {
-          newBalance = editingTransaction.type === 'income' 
-            ? newBalance - editingTransaction.amount 
-            : newBalance + editingTransaction.amount;
-            
-          // Apply new transaction effect
-          newBalance = type === 'income' 
-            ? newBalance + numericAmount 
-            : newBalance - numericAmount;
-
-          await api.updateAccount(accountId, { balance: newBalance });
-          setAccounts(accounts.map(a => a.id === accountId ? { ...a, balance: newBalance } : a));
+        const newAccounts = [...accounts];
+        
+        // --- 1. REVERSE OLD TRANSACTION EFFECT ---
+        const oldAccIndex = newAccounts.findIndex(a => a.id === editingTransaction.account_id);
+        if (oldAccIndex !== -1) {
+          if (editingTransaction.type === 'income') {
+            newAccounts[oldAccIndex] = { ...newAccounts[oldAccIndex], balance: newAccounts[oldAccIndex].balance - editingTransaction.amount };
+          } else {
+            newAccounts[oldAccIndex] = { ...newAccounts[oldAccIndex], balance: newAccounts[oldAccIndex].balance + editingTransaction.amount };
+          }
         }
 
+        // --- 2. APPLY NEW TRANSACTION EFFECT ---
+        const newAccIndex = newAccounts.findIndex(a => a.id === accountId);
+        if (newAccIndex !== -1) {
+          if (type === 'income') {
+            newAccounts[newAccIndex] = { ...newAccounts[newAccIndex], balance: newAccounts[newAccIndex].balance + numericAmount };
+          } else {
+            newAccounts[newAccIndex] = { ...newAccounts[newAccIndex], balance: newAccounts[newAccIndex].balance - numericAmount };
+          }
+        }
+
+        // --- 3. UPDATE DB FOR CHANGED ACCOUNTS ---
+        const accountsToUpdate = new Set([editingTransaction.account_id, accountId]);
+        for (const id of accountsToUpdate) {
+          const accToUpdate = newAccounts.find(a => a.id === id);
+          if (accToUpdate) {
+            await api.updateAccount(id, { balance: accToUpdate.balance });
+          }
+        }
+
+        // --- 4. UPDATE TRANSACTION ---
         const updatedTx = await api.updateTransaction(editingTransaction.id, payload);
+        setAccounts(newAccounts);
         setTransactions(transactions.map(t => t.id === editingTransaction.id ? (updatedTx as import('../../services/api').Transaction) : t));
       } else {
         if (account) {
