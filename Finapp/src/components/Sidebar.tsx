@@ -5,7 +5,6 @@ import {
   Wallet, 
   PieChart, 
   Target, 
-  BarChart3,
   Settings
 } from 'lucide-react';
 import clsx from 'clsx';
@@ -16,7 +15,6 @@ const navItems = [
   { name: 'Cuentas', path: '/accounts', icon: Wallet },
   { name: 'Presupuestos', path: '/budgets', icon: PieChart },
   { name: 'Metas', path: '/goals', icon: Target },
-  { name: 'Reportes', path: '/reports', icon: BarChart3 },
 ];
 
 export const Sidebar = () => {

@@ -118,7 +118,7 @@ export const KPICards = () => {
             <div className="mt-auto bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-500">
               <div className="flex items-start gap-3">
                 <span className="text-2xl leading-none">{adviceIcon}</span>
-                <p className="text-xs text-gray-600 dark:text-gray-300 font-medium leading-relaxed">
+                <p className="text-xs text-gray-800 dark:text-gray-100 font-medium leading-relaxed">
                   {adviceText}
                 </p>
               </div>

@@ -21,11 +21,12 @@ const COLORS = [
 
 export const AccountModal = () => {
   const { isAccountModalOpen, closeAccountModal, editingAccount } = useModal();
-  const { user, accounts, setAccounts } = useStore();
+  const { user, accounts, setAccounts, transactions, setTransactions } = useStore();
   
   const [name, setName] = useState('');
   const [type, setType] = useState('bank');
   const [currency, setCurrency] = useState<Currency>('NIO');
+  const [initialBalance, setInitialBalance] = useState('');
   const [icon, setIcon] = useState('landmark');
   const [color, setColor] = useState(COLORS[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,6 +43,7 @@ export const AccountModal = () => {
       setType('bank');
       setIcon('landmark');
       setColor(COLORS[0]);
+      setInitialBalance('');
     }
   }, [editingAccount, isAccountModalOpen]);
 
@@ -53,11 +55,14 @@ export const AccountModal = () => {
     
     setIsSubmitting(true);
     try {
+      const parsedInitial = parseFloat(initialBalance);
+      const startBalance = !isNaN(parsedInitial) ? parsedInitial : 0;
+
       const payload = {
         user_id: user.id,
         name,
         type,
-        balance: editingAccount ? editingAccount.balance : 0,
+        balance: editingAccount ? editingAccount.balance : startBalance,
         currency,
         icon,
         color
@@ -68,6 +73,22 @@ export const AccountModal = () => {
         setAccounts(accounts.map(a => a.id === editingAccount.id ? updatedAcc : a));
       } else {
         const newAcc = await api.createAccount(payload);
+        
+        if (startBalance !== 0) {
+          const txPayload = {
+            user_id: user.id,
+            account_id: newAcc.id,
+            title: 'Saldo Inicial',
+            amount: Math.abs(startBalance),
+            type: startBalance > 0 ? 'income' : 'expense',
+            category: 'other',
+            currency,
+            date: new Date().toISOString().split('T')[0]
+          };
+          const newTx = await api.createTransaction(txPayload);
+          setTransactions([newTx as import('../../services/api').Transaction, ...transactions]);
+        }
+
         setAccounts([...accounts, newAcc]);
       }
       
@@ -165,8 +186,23 @@ export const AccountModal = () => {
             </div>
 
             {/* Balance & Currency */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-3">
+            <div className="grid grid-cols-2 gap-4">
+              {!editingAccount && (
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Saldo Inicial
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={initialBalance}
+                    onChange={(e) => setInitialBalance(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all text-gray-900"
+                  />
+                </div>
+              )}
+              <div className={!editingAccount ? "col-span-2 sm:col-span-1" : "col-span-2"}>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Moneda Base
                 </label>

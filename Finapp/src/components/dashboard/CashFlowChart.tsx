@@ -6,8 +6,8 @@ export const CashFlowChart = () => {
   const { transactions, profile } = useStore();
   const isDark = profile?.theme?.startsWith('dark');
 
-  const incomeColor = '#EC4899'; // pink-500
-  const expenseColor = '#F472B6'; // pink-400
+  const incomeColor = '#10B981'; // emerald-500
+  const expenseColor = '#EC4899'; // pink-500
 
   const data = useMemo(() => {
     // Tomamos los últimos 6 meses basados en la fecha actual (o las fechas de las txs)
@@ -15,7 +15,7 @@ export const CashFlowChart = () => {
     const monthlyData: Record<string, { name: string; ingresos: number; gastos: number }> = {};
     
     // Nombres de los meses
-    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
     transactions.forEach(tx => {
       const date = new Date(tx.date);
@@ -23,7 +23,7 @@ export const CashFlowChart = () => {
       
       if (!monthlyData[key]) {
         monthlyData[key] = {
-          name: `${monthNames[date.getMonth()]} ${date.getFullYear().toString().slice(2)}`,
+          name: `${monthNames[date.getMonth()]}`,
           ingresos: 0,
           gastos: 0
         };
@@ -65,7 +65,7 @@ export const CashFlowChart = () => {
           <BarChart
             data={data}
             margin={{ top: 5, right: 0, left: -20, bottom: 5 }}
-            barSize={32}
+            barSize={40}
           >
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? '#374151' : '#F3F4F6'} />
             <XAxis 

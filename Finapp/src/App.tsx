@@ -6,7 +6,6 @@ import { Transactions } from './pages/Transactions';
 import { Accounts } from './pages/Accounts';
 import { Budgets } from './pages/Budgets';
 import { Goals } from './pages/Goals';
-import { Reports } from './pages/Reports';
 import { Auth } from './pages/Auth';
 import { ModalProvider } from './context/ModalContext';
 import { useStore } from './store/useStore';
@@ -130,7 +129,6 @@ function App() {
             <Route path="accounts" element={<Accounts />} />
             <Route path="budgets" element={<Budgets />} />
             <Route path="goals" element={<Goals />} />
-            <Route path="reports" element={<Reports />} />
           </Route>
         </Routes>
       </BrowserRouter>

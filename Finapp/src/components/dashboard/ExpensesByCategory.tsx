@@ -6,7 +6,12 @@ export const ExpensesByCategory = () => {
   const { transactions, profile } = useStore();
   const isDark = profile?.theme?.startsWith('dark');
   const data = useMemo(() => {
-    const expenses = transactions.filter(tx => tx.type === 'expense');
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const expenses = transactions.filter(tx => {
+      const txDate = new Date(tx.date);
+      return tx.type === 'expense' && txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
+    });
     
     // Agrupar por categoría
     const grouped = expenses.reduce((acc, tx) => {
