@@ -5,8 +5,7 @@ import {
   Wallet, 
   PieChart, 
   Target, 
-  BarChart3, 
-  Leaf
+  BarChart3
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -25,8 +24,8 @@ export const Sidebar = () => {
       {/* Logo Area */}
       <div className="h-16 flex items-center px-6 border-b border-gray-100 dark:border-gray-800">
         <div className="flex items-center gap-2 text-brand font-bold text-xl">
-          <div className="bg-brand-light p-1.5 rounded-lg">
-            <Leaf className="w-6 h-6 text-brand" />
+          <div className="bg-brand w-8 h-8 rounded-lg flex items-center justify-center shadow-sm">
+            <span className="text-white font-bold text-lg leading-none">F</span>
           </div>
           FinApp
         </div>

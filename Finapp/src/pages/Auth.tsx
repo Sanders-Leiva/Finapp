@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Leaf, Mail, Lock, User, Palette } from 'lucide-react';
+import { Mail, Lock, User, Palette } from 'lucide-react';
 import clsx from 'clsx';
 
 export const Auth = () => {
@@ -64,8 +64,8 @@ export const Auth = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-500">
         <div className="bg-brand-dark p-8 text-center text-white">
-          <div className="w-16 h-16 bg-brand-light rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Leaf className="w-8 h-8 text-brand" />
+          <div className="w-16 h-16 bg-brand rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand/20">
+            <span className="text-4xl text-white font-bold">F</span>
           </div>
           <h1 className="text-2xl font-bold mb-2">Bienvenido a FinApp</h1>
           <p className="text-brand-light/80">Tu vida financiera, bajo control.</p>
@@ -100,7 +100,7 @@ export const Auth = () => {
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent text-gray-900 bg-white placeholder-gray-400"
                       placeholder="Ej. Sanders Leiva"
                     />
                   </div>
@@ -145,7 +145,7 @@ export const Auth = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent text-gray-900 bg-white placeholder-gray-400"
                   placeholder="tu@correo.com"
                 />
               </div>
@@ -161,7 +161,7 @@ export const Auth = () => {
                   minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent text-gray-900 bg-white placeholder-gray-400"
                   placeholder="••••••••"
                 />
               </div>
