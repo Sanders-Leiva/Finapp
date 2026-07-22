@@ -4,8 +4,7 @@ import {
   ArrowRightLeft, 
   Wallet, 
   PieChart, 
-  Target, 
-  Settings
+  Target
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -56,32 +55,6 @@ export const Sidebar = () => {
           </NavLink>
         ))}
       </nav>
-
-      {/* Bottom Section */}
-      <div className="p-3 border-t border-gray-100 dark:border-gray-800 shrink-0">
-        <NavLink
-          to="/settings"
-          className={({ isActive }) => clsx(
-            "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 relative font-medium group",
-            isActive 
-              ? "text-brand bg-brand-50 dark:bg-brand-900/10" 
-              : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100"
-          )}
-        >
-          {({ isActive }) => (
-            <>
-              {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-brand rounded-r-full shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-              )}
-              <Settings className={clsx(
-                "w-5 h-5 transition-transform duration-200 group-hover:rotate-45",
-                isActive ? "text-brand" : "text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300"
-              )} />
-              Configuración
-            </>
-          )}
-        </NavLink>
-      </div>
     </aside>
   );
 };

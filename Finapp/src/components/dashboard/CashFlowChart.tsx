@@ -29,10 +29,12 @@ export const CashFlowChart = () => {
         };
       }
       
-      if (tx.type === 'income') {
-        monthlyData[key].ingresos += tx.amount;
-      } else {
-        monthlyData[key].gastos += tx.amount;
+      if (tx.category !== 'transfer') {
+        if (tx.type === 'income') {
+          monthlyData[key].ingresos += tx.amount;
+        } else {
+          monthlyData[key].gastos += tx.amount;
+        }
       }
     });
 

@@ -10,7 +10,7 @@ export const ExpensesByCategory = () => {
     const currentYear = new Date().getFullYear();
     const expenses = transactions.filter(tx => {
       const txDate = new Date(tx.date);
-      return tx.type === 'expense' && txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
+      return tx.type === 'expense' && tx.category !== 'transfer' && txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
     });
     
     // Agrupar por categoría

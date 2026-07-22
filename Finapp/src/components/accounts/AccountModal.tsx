@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useModal } from '../../context/ModalContext';
 import { useStore } from '../../store/useStore';
 import { api } from '../../services/api';
-import { X, Loader2, Landmark, Wallet } from 'lucide-react';
+import { X, Loader2, Landmark, Wallet, CreditCard } from 'lucide-react';
 import clsx from 'clsx';
 import Swal from 'sweetalert2';
 import type { Currency } from '../../utils/currency';
@@ -30,6 +30,11 @@ export const AccountModal = () => {
   const [icon, setIcon] = useState('landmark');
   const [color, setColor] = useState(COLORS[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Credit card specific fields
+  const [creditLimit, setCreditLimit] = useState('');
+  const [cutoffDate, setCutoffDate] = useState('');
+  const [paymentDate, setPaymentDate] = useState('');
 
   useEffect(() => {
     if (editingAccount) {
@@ -38,12 +43,18 @@ export const AccountModal = () => {
       setCurrency(editingAccount.currency as Currency);
       setIcon(editingAccount.icon);
       setColor(editingAccount.color);
+      setCreditLimit(editingAccount.credit_limit ? editingAccount.credit_limit.toString() : '');
+      setCutoffDate(editingAccount.cutoff_date ? editingAccount.cutoff_date.toString() : '');
+      setPaymentDate(editingAccount.payment_date ? editingAccount.payment_date.toString() : '');
     } else {
       setName('');
       setType('bank');
       setIcon('landmark');
       setColor(COLORS[0]);
       setInitialBalance('');
+      setCreditLimit('');
+      setCutoffDate('');
+      setPaymentDate('');
     }
   }, [editingAccount, isAccountModalOpen]);
 
@@ -62,10 +73,15 @@ export const AccountModal = () => {
         user_id: user.id,
         name,
         type,
-        balance: editingAccount ? editingAccount.balance : startBalance,
+        balance: editingAccount ? editingAccount.balance : (type === 'credit' ? -Math.abs(startBalance) : startBalance),
         currency,
         icon,
-        color
+        color,
+        ...(type === 'credit' && {
+          credit_limit: parseFloat(creditLimit) || 0,
+          cutoff_date: parseInt(cutoffDate) || null,
+          payment_date: parseInt(paymentDate) || null
+        })
       };
 
       if (editingAccount) {
@@ -80,7 +96,7 @@ export const AccountModal = () => {
             account_id: newAcc.id,
             title: 'Saldo Inicial',
             amount: Math.abs(startBalance),
-            type: startBalance > 0 ? 'income' : 'expense',
+            type: (type === 'credit' || startBalance < 0) ? 'expense' : 'income',
             category: 'other',
             currency,
             date: new Date().toISOString().split('T')[0]
@@ -123,13 +139,13 @@ export const AccountModal = () => {
         </div>
 
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-brand-dark">
+        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-brand-dark dark:text-white">
             {editingAccount ? 'Editar Cuenta' : 'Nueva Cuenta'}
           </h2>
           <button 
             onClick={closeAccountModal}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -141,7 +157,7 @@ export const AccountModal = () => {
             
             {/* Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Nombre de la cuenta
               </label>
               <input
@@ -150,22 +166,22 @@ export const AccountModal = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ej. BAC Credomatic"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all text-gray-900"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all text-gray-900 dark:text-white"
               />
             </div>
 
             {/* Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Tipo de Cuenta
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <button
                   type="button"
                   onClick={() => setType('bank')}
                   className={clsx(
-                    "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-colors",
-                    type === 'bank' ? "border-brand bg-brand-light/30 text-brand" : "border-gray-100 bg-white text-gray-500 hover:bg-gray-50"
+                    "flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-colors",
+                    type === 'bank' ? "border-brand bg-brand-light/30 dark:bg-brand/20 text-brand" : "border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                   )}
                 >
                   <Landmark className="w-6 h-6 mb-2" />
@@ -176,21 +192,77 @@ export const AccountModal = () => {
                   onClick={() => setType('cash')}
                   className={clsx(
                     "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-colors",
-                    type === 'cash' ? "border-brand bg-brand-light/30 text-brand" : "border-gray-100 bg-white text-gray-500 hover:bg-gray-50"
+                    type === 'cash' ? "border-brand bg-brand-light/30 dark:bg-brand/20 text-brand" : "border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                   )}
                 >
                   <Wallet className="w-6 h-6 mb-2" />
-                  <span className="font-semibold text-sm">Efectivo</span>
+                  <span className="font-semibold text-xs sm:text-sm">Efectivo</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setType('credit')}
+                  className={clsx(
+                    "flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-colors",
+                    type === 'credit' ? "border-brand bg-brand-light/30 dark:bg-brand/20 text-brand" : "border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  )}
+                >
+                  <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 mb-2" />
+                  <span className="font-semibold text-xs sm:text-sm">Crédito</span>
                 </button>
               </div>
             </div>
+
+            {/* Credit Card Specific Fields */}
+            {type === 'credit' && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
+                <div className="sm:col-span-3">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    Límite de Crédito
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    value={creditLimit}
+                    onChange={(e) => setCreditLimit(e.target.value)}
+                    placeholder="Ej. 1000.00"
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none text-sm dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    Día de Corte
+                  </label>
+                  <input
+                    type="number"
+                    min="1" max="31"
+                    value={cutoffDate}
+                    onChange={(e) => setCutoffDate(e.target.value)}
+                    placeholder="1-31"
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none text-sm dark:text-white"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    Día de Pago Límite
+                  </label>
+                  <input
+                    type="number"
+                    min="1" max="31"
+                    value={paymentDate}
+                    onChange={(e) => setPaymentDate(e.target.value)}
+                    placeholder="1-31"
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none text-sm dark:text-white"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Balance & Currency */}
             <div className="grid grid-cols-2 gap-4">
               {!editingAccount && (
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Saldo Inicial
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {type === 'credit' ? 'Deuda Actual' : 'Saldo Inicial'}
                   </label>
                   <input
                     type="number"
@@ -198,18 +270,18 @@ export const AccountModal = () => {
                     value={initialBalance}
                     onChange={(e) => setInitialBalance(e.target.value)}
                     placeholder="0.00"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all text-gray-900"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all text-gray-900 dark:text-white"
                   />
                 </div>
               )}
               <div className={!editingAccount ? "col-span-2 sm:col-span-1" : "col-span-2"}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Moneda Base
                 </label>
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value as Currency)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all text-gray-900 appearance-none"
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all text-gray-900 dark:text-white appearance-none"
                 >
                   <option value="NIO">NIO (C$)</option>
                   <option value="USD">USD ($)</option>
@@ -219,7 +291,7 @@ export const AccountModal = () => {
 
             {/* Icon & Color */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Personalización
               </label>
               
@@ -233,7 +305,7 @@ export const AccountModal = () => {
                       onClick={() => setIcon(i)}
                       className={clsx(
                         "w-10 h-10 rounded-full flex items-center justify-center transition-all",
-                        icon === i ? "ring-2 ring-brand ring-offset-2 bg-gray-100 scale-110" : "hover:bg-gray-50 text-gray-500 hover:text-gray-900 opacity-70 hover:opacity-100"
+                        icon === i ? "ring-2 ring-brand ring-offset-2 bg-gray-100 dark:bg-gray-700 scale-110" : "hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white opacity-70 hover:opacity-100"
                       )}
                     >
                       {(() => {
@@ -268,12 +340,12 @@ export const AccountModal = () => {
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-100 bg-gray-50 sm:rounded-b-3xl pb-safe">
+        <div className="p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 sm:rounded-b-3xl pb-safe">
           <div className="flex flex-col-reverse sm:flex-row gap-3">
             <button
               type="button"
               onClick={closeAccountModal}
-              className="px-5 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-200 bg-gray-100 rounded-xl transition-colors sm:w-1/3"
+              className="px-5 py-2.5 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 bg-gray-100 dark:bg-gray-800 rounded-xl transition-colors sm:w-1/3"
             >
               Cancelar
             </button>

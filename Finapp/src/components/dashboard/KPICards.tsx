@@ -19,11 +19,11 @@ export const KPICards = () => {
   });
 
   const monthlyIncome = monthlyTransactions
-    .filter(tx => tx.type === 'income')
+    .filter(tx => tx.type === 'income' && tx.category !== 'transfer')
     .reduce((acc, tx) => acc + tx.amount, 0);
 
   const monthlyExpense = monthlyTransactions
-    .filter(tx => tx.type === 'expense')
+    .filter(tx => tx.type === 'expense' && tx.category !== 'transfer')
     .reduce((acc, tx) => acc + tx.amount, 0);
 
   const savingsRate = monthlyIncome > 0 ? ((monthlyIncome - monthlyExpense) / monthlyIncome) * 100 : (monthlyExpense > 0 ? -100 : 0);

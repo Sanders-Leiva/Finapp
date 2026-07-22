@@ -27,12 +27,15 @@ export interface Account {
   id: string;
   user_id: string;
   name: string;
-  type: string;
+  type: string; // 'bank', 'cash', 'credit'
   balance: number;
   currency: string;
   icon: string;
   color: string;
   created_at: string;
+  credit_limit?: number;
+  cutoff_date?: number;
+  payment_date?: number;
 }
 
 export interface Budget {

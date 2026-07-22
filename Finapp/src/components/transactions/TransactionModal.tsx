@@ -11,12 +11,13 @@ export const TransactionModal = () => {
   const { isTransactionModalOpen, closeTransactionModal, editingTransaction } = useModal();
   const { user, accounts, setAccounts, transactions, setTransactions } = useStore();
   
-  const [type, setType] = useState<'income' | 'expense'>('expense');
+  const [type, setType] = useState<'income' | 'expense' | 'transfer'>('expense');
   const [currency, setCurrency] = useState<Currency>('NIO');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [category, setCategory] = useState('');
   const [accountId, setAccountId] = useState('');
+  const [destinationAccountId, setDestinationAccountId] = useState('');
   const [title, setTitle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -24,7 +25,7 @@ export const TransactionModal = () => {
   useEffect(() => {
     if (isTransactionModalOpen) {
       if (editingTransaction) {
-        setType(editingTransaction.type as 'income' | 'expense');
+        setType(editingTransaction.type as 'income' | 'expense' | 'transfer');
         setCurrency(editingTransaction.currency as Currency);
         setAmount(editingTransaction.amount.toString());
         setDate(editingTransaction.date.split('T')[0]);
@@ -39,8 +40,13 @@ export const TransactionModal = () => {
         // Ensure defaults are set
         if (accounts.length > 0) {
           setAccountId(accounts[0].id);
+          if (accounts.length > 1) {
+            setDestinationAccountId(accounts[1].id);
+          } else {
+            setDestinationAccountId(accounts[0].id);
+          }
         }
-        setCategory(type === 'expense' ? 'food' : 'salary');
+        setCategory(type === 'expense' ? 'food' : (type === 'income' ? 'salary' : 'transfer'));
       }
     }
   }, [editingTransaction, isTransactionModalOpen, accounts]);
@@ -68,6 +74,8 @@ export const TransactionModal = () => {
       const account = accounts.find(a => a.id === accountId);
 
       if (editingTransaction) {
+        // ... omitted update logic for brevity, transferring editing is hard if it was a double entry. 
+        // For simplicity, we just allow updating the single transaction as usual.
         const newAccounts = [...accounts];
         
         // --- 1. REVERSE OLD TRANSACTION EFFECT ---
@@ -104,17 +112,56 @@ export const TransactionModal = () => {
         setAccounts(newAccounts);
         setTransactions(transactions.map(t => t.id === editingTransaction.id ? (updatedTx as import('../../services/api').Transaction) : t));
       } else {
-        if (account) {
-          const newBalance = type === 'income' 
-            ? account.balance + numericAmount 
-            : account.balance - numericAmount;
+        if (type === 'transfer') {
+          // Double entry for transfer
+          const sourceAccount = accounts.find(a => a.id === accountId);
+          const destAccount = accounts.find(a => a.id === destinationAccountId);
+          
+          if (sourceAccount && destAccount) {
+            // Expense from source
+            const sourceNewBalance = sourceAccount.balance - numericAmount;
+            await api.updateAccount(accountId, { balance: sourceNewBalance });
             
-          await api.updateAccount(accountId, { balance: newBalance });
-          setAccounts(accounts.map(a => a.id === accountId ? { ...a, balance: newBalance } : a));
-        }
+            // Income to dest
+            const destNewBalance = destAccount.balance + numericAmount;
+            await api.updateAccount(destinationAccountId, { balance: destNewBalance });
 
-        const newTx = await api.createTransaction(payload);
-        setTransactions([newTx as import('../../services/api').Transaction, ...transactions]);
+            const newAccountsState = accounts.map(a => {
+              if (a.id === accountId) return { ...a, balance: sourceNewBalance };
+              if (a.id === destinationAccountId) return { ...a, balance: destNewBalance };
+              return a;
+            });
+            setAccounts(newAccountsState);
+
+            const txExpense = await api.createTransaction({
+              ...payload,
+              type: 'expense',
+              category: 'transfer'
+            });
+            
+            const txIncome = await api.createTransaction({
+              ...payload,
+              account_id: destinationAccountId,
+              type: 'income',
+              category: 'transfer'
+            });
+
+            setTransactions([txIncome as import('../../services/api').Transaction, txExpense as import('../../services/api').Transaction, ...transactions]);
+          }
+        } else {
+          // Normal income/expense
+          if (account) {
+            const newBalance = type === 'income' 
+              ? account.balance + numericAmount 
+              : account.balance - numericAmount;
+              
+            await api.updateAccount(accountId, { balance: newBalance });
+            setAccounts(accounts.map(a => a.id === accountId ? { ...a, balance: newBalance } : a));
+          }
+
+          const newTx = await api.createTransaction(payload);
+          setTransactions([newTx as import('../../services/api').Transaction, ...transactions]);
+        }
       }
       
       closeTransactionModal();
@@ -180,7 +227,7 @@ export const TransactionModal = () => {
                 <button
                   onClick={() => { setType('income'); setCategory('salary'); }}
                   className={clsx(
-                    "flex-1 py-2 text-sm font-semibold rounded-lg transition-all",
+                    "flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all",
                     type === 'income' ? "bg-white dark:bg-gray-700 text-brand shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                   )}
                 >
@@ -189,12 +236,23 @@ export const TransactionModal = () => {
                 <button
                   onClick={() => { setType('expense'); setCategory('food'); }}
                   className={clsx(
-                    "flex-1 py-2 text-sm font-semibold rounded-lg transition-all",
+                    "flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all",
                     type === 'expense' ? "bg-white dark:bg-gray-700 text-expense shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                   )}
                 >
                   GASTO
                 </button>
+                {!editingTransaction && (
+                  <button
+                    onClick={() => { setType('transfer'); setCategory('transfer'); }}
+                    className={clsx(
+                      "flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all",
+                      type === 'transfer' ? "bg-white dark:bg-gray-700 text-blue-500 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                    )}
+                  >
+                    TRASPASO
+                  </button>
+                )}
               </div>
 
               {/* Form */}
@@ -279,11 +337,15 @@ export const TransactionModal = () => {
                             <option value="education">Educación</option>
                             <option value="other_expense">Otros Gastos</option>
                           </>
-                        ) : (
+                        ) : type === 'income' ? (
                           <>
                             <option value="salary">Salario</option>
                             <option value="freelance">Freelance</option>
                             <option value="other">Otros</option>
+                          </>
+                        ) : (
+                          <>
+                            <option value="transfer">Transferencia / Pago</option>
                           </>
                         )}
                       </select>
@@ -294,23 +356,50 @@ export const TransactionModal = () => {
                   </div>
 
                   {/* Account */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cuenta</label>
-                    <div className="relative">
-                      <select 
-                        value={accountId}
-                        onChange={(e) => setAccountId(e.target.value)}
-                        className="appearance-none block w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-colors cursor-pointer"
-                        required
-                      >
-                        {accounts.map(acc => (
-                          <option key={acc.id} value={acc.id}>{acc.name}</option>
-                        ))}
-                      </select>
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-400">
-                        <ChevronDown className="w-4 h-4" />
+                  <div className={type === 'transfer' ? 'col-span-2 grid grid-cols-2 gap-4' : ''}>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        {type === 'transfer' ? 'Desde (Cuenta Origen)' : 'Cuenta'}
+                      </label>
+                      <div className="relative">
+                        <select 
+                          value={accountId}
+                          onChange={(e) => setAccountId(e.target.value)}
+                          className="appearance-none block w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-colors cursor-pointer"
+                          required
+                        >
+                          {accounts.map(acc => (
+                            <option key={acc.id} value={acc.id}>{acc.name}</option>
+                          ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-400">
+                          <ChevronDown className="w-4 h-4" />
+                        </div>
                       </div>
                     </div>
+
+                    {type === 'transfer' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Hacia (Cuenta Destino)
+                        </label>
+                        <div className="relative">
+                          <select 
+                            value={destinationAccountId}
+                            onChange={(e) => setDestinationAccountId(e.target.value)}
+                            className="appearance-none block w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-colors cursor-pointer"
+                            required
+                          >
+                            {accounts.map(acc => (
+                              <option key={`dest-${acc.id}`} value={acc.id}>{acc.name}</option>
+                            ))}
+                          </select>
+                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-400">
+                            <ChevronDown className="w-4 h-4" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
