@@ -1,15 +1,26 @@
-import { Bell, LogOut, Plus } from 'lucide-react';
+import { Bell, LogOut, Plus, Sun, Moon } from 'lucide-react';
 import { useModal } from '../context/ModalContext';
 import { useStore } from '../store/useStore';
 import { supabase } from '../lib/supabase';
+import { hapticFeedback } from '../utils/haptics';
 
 // Props interface removed as no longer needed
 
 export const Header = () => {
   const { openTransactionModal } = useModal();
-  const { profile } = useStore();
+  const { profile, isDarkMode, toggleDarkMode } = useStore();
   const handleLogout = async () => {
     await supabase.auth.signOut();
+  };
+
+  const handleAddClick = () => {
+    hapticFeedback.medium();
+    openTransactionModal();
+  };
+
+  const handleThemeToggle = () => {
+    hapticFeedback.light();
+    toggleDarkMode();
   };
 
   return (
@@ -23,7 +34,7 @@ export const Header = () => {
       <div className="flex items-center gap-2 sm:gap-4">
         {/* Quick Add Button */}
         <button 
-          onClick={() => openTransactionModal()}
+          onClick={handleAddClick}
           className="hidden sm:flex items-center gap-2 bg-brand hover:bg-brand-dark text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm"
         >
           <Plus className="w-4 h-4" />
@@ -32,10 +43,19 @@ export const Header = () => {
         
         {/* Mobile Add Button */}
         <button 
-          onClick={() => openTransactionModal()}
+          onClick={handleAddClick}
           className="sm:hidden flex items-center justify-center bg-brand hover:bg-brand-dark text-white w-10 h-10 rounded-lg transition-colors"
         >
           <Plus className="w-5 h-5" />
+        </button>
+
+        {/* Theme Toggle */}
+        <button 
+          onClick={handleThemeToggle}
+          className="p-2 text-gray-400 hover:text-brand hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+          title={isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+        >
+          {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
 
         {/* Notifications */}
@@ -43,8 +63,6 @@ export const Header = () => {
           <Bell className="w-5 h-5" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand rounded-full border-2 border-white dark:border-gray-900"></span>
         </button>
-
-        {/* Log Out */}
 
         {/* Logout Button */}
         <button 

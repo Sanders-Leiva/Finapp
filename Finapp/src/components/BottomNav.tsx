@@ -1,6 +1,7 @@
 import { LayoutDashboard, ArrowRightLeft, Wallet, Target } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import clsx from 'clsx';
+import { hapticFeedback } from '../utils/haptics';
 
 export const BottomNav = () => {
   const navItems = [
@@ -17,6 +18,7 @@ export const BottomNav = () => {
           <NavLink
             key={item.path}
             to={item.path}
+            onClick={() => hapticFeedback.light()}
             className={({ isActive }) => clsx(
               "flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-300 relative group",
               isActive ? "text-brand" : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"

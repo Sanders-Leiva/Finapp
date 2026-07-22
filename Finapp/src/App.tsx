@@ -92,11 +92,14 @@ function App() {
 
 
 
+  const { initTheme } = useStore();
+
   // Theme injection
   useEffect(() => {
-    const root = document.documentElement;
-    root.classList.add('dark', 'theme-pink');
-  }, []);
+    initTheme();
+    // Mantener theme-pink si es necesario, o quitarlo si se controla por profile.theme después
+    document.documentElement.classList.add('theme-pink');
+  }, [initTheme]);
 
   if (isAppLoading) {
     return (
