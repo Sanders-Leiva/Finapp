@@ -5,7 +5,6 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 export const CashFlowChart = () => {
   const { transactions, profile } = useStore();
   const isDark = profile?.theme?.startsWith('dark');
-  const isPink = profile?.theme?.includes('pink');
 
   const incomeColor = '#EC4899'; // pink-500
   const expenseColor = '#F472B6'; // pink-400
@@ -91,7 +90,7 @@ export const CashFlowChart = () => {
                 backgroundColor: isDark ? '#111827' : '#ffffff',
                 color: isDark ? '#F9FAFB' : '#111827'
               }}
-              formatter={(value: any) => [`C$${Number(value).toLocaleString('es-NI')}`, undefined]}
+              formatter={(value: number | string) => [`C$${Number(value).toLocaleString('es-NI')}`, undefined]}
             />
             <Legend 
               iconType="circle" 
