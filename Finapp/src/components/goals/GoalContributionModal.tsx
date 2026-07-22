@@ -49,11 +49,16 @@ export const GoalContributionModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100 dark:border-gray-800">
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-gray-900 w-full max-w-md overflow-hidden rounded-t-3xl sm:rounded-2xl border-t sm:border border-gray-100 dark:border-gray-800 shadow-2xl animate-in slide-in-from-bottom-8 sm:zoom-in-95 duration-300">
         
+        {/* Mobile handle */}
+        <div className="w-full flex justify-center pt-3 pb-1 sm:hidden shrink-0">
+          <div className="w-12 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+        </div>
+
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex flex-col-reverse items-center justify-between">
+        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
           <h2 className="text-xl font-bold text-brand-dark dark:text-white">
             Aportar a Meta
           </h2>

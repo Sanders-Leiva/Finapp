@@ -87,14 +87,19 @@ export const AccountModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center sm:p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
       <div 
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0"
         onClick={closeAccountModal}
       ></div>
       
-      <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:w-[500px] sm:rounded-3xl shadow-2xl relative flex flex-col animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 duration-300">
+      <div className="bg-white dark:bg-gray-900 w-full max-w-lg overflow-hidden rounded-t-3xl sm:rounded-2xl border-t sm:border border-gray-100 dark:border-gray-800 shadow-2xl relative flex flex-col animate-in slide-in-from-bottom-8 sm:zoom-in-95 duration-300 max-h-[90vh]">
         
+        {/* Mobile handle */}
+        <div className="w-full flex justify-center pt-3 pb-1 sm:hidden shrink-0">
+          <div className="w-12 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+        </div>
+
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-xl font-bold text-brand-dark">

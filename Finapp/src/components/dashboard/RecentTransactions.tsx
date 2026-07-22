@@ -1,4 +1,5 @@
 import { useStore } from '../../store/useStore';
+import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 
 export const RecentTransactions = () => {
@@ -9,9 +10,9 @@ export const RecentTransactions = () => {
     <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 flex flex-col h-full transition-colors duration-500">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-bold text-brand-dark dark:text-white">Últimos Movimientos</h3>
-        <button className="text-sm font-medium text-brand hover:text-brand-dark dark:hover:text-brand-light transition-colors">
+        <Link to="/transactions" className="text-sm font-medium text-brand hover:text-brand-dark dark:hover:text-brand-light transition-colors">
           Ver todas
-        </button>
+        </Link>
       </div>
 
       <div className="flex-1 overflow-y-auto">
