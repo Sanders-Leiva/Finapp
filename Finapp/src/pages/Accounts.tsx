@@ -1,4 +1,4 @@
-import { Plus, Edit2, Trash2, Loader2, CreditCard as CreditCardIcon } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, CreditCard as CreditCardIcon, CheckCircle2 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { useModal } from '../context/ModalContext';
 import { api } from '../services/api';
@@ -13,6 +13,44 @@ export const Accounts = () => {
   const { accounts, setAccounts } = useStore();
   const { openAccountModal } = useModal();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  // Local state to track if a card was paid this month
+  const [paidMonths, setPaidMonths] = useState<Record<string, string>>(() => {
+    try {
+      const saved = localStorage.getItem('finapp_paid_months');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const togglePaidStatus = (accountId: string) => {
+    const currentMonth = new Date().toISOString().slice(0, 7); // e.g., "2026-07"
+    const newPaid = { ...paidMonths };
+    
+    if (newPaid[accountId] === currentMonth) {
+      delete newPaid[accountId]; // Undo
+    } else {
+      newPaid[accountId] = currentMonth;
+    }
+    
+    setPaidMonths(newPaid);
+    localStorage.setItem('finapp_paid_months', JSON.stringify(newPaid));
+  };
+
+  const getNextDate = (day: number | null | undefined) => {
+    if (!day) return '--';
+    const now = new Date();
+    let targetMonth = now.getMonth();
+    
+    // Si el día ya pasó este mes, el próximo evento es el siguiente mes
+    if (now.getDate() > day) {
+      targetMonth = (targetMonth + 1) % 12;
+    }
+    
+    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return `${day} de ${monthNames[targetMonth]}`;
+  };
 
   const regularAccounts = accounts.filter(a => a.type !== 'credit');
   const creditCards = accounts.filter(a => a.type === 'credit');
@@ -126,10 +164,30 @@ export const Accounts = () => {
                       </div>
                     </div>
 
-                    {/* Dates */}
-                    <div className="flex justify-between text-xs text-white/70 relative z-10">
-                      <div>Corte: {card.cutoff_date || '--'}</div>
-                      <div>Pago: {card.payment_date || '--'}</div>
+                    {/* Dates & Paid Toggle */}
+                    <div className="flex justify-between items-center text-xs text-white/70 relative z-10">
+                      {paidMonths[card.id] === new Date().toISOString().slice(0, 7) ? (
+                        <button 
+                          onClick={() => togglePaidStatus(card.id)}
+                          className="flex items-center gap-2 text-emerald-300 font-medium bg-emerald-900/50 w-full justify-center px-3 py-2 rounded-xl border border-emerald-500/30 hover:bg-emerald-900/70 transition-colors"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>¡Pagado este mes! (Tocar para deshacer)</span>
+                        </button>
+                      ) : (
+                        <div className="w-full flex justify-between items-end">
+                          <div className="flex flex-col gap-1">
+                            <div>Próx. Corte: <span className="text-white font-medium">{getNextDate(card.cutoff_date)}</span></div>
+                            <div>Pago Límite: <span className="text-white font-medium">{getNextDate(card.payment_date)}</span></div>
+                          </div>
+                          <button 
+                            onClick={() => togglePaidStatus(card.id)}
+                            className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg transition-colors font-semibold"
+                          >
+                            ¿Ya pagaste?
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
 
