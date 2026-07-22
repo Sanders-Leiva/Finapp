@@ -3,14 +3,27 @@ import { useModal } from '../context/ModalContext';
 import { useStore } from '../store/useStore';
 import { supabase } from '../lib/supabase';
 import { hapticFeedback } from '../utils/haptics';
-
-// Props interface removed as no longer needed
+import Swal from 'sweetalert2';
 
 export const Header = () => {
   const { openTransactionModal } = useModal();
   const { profile, isDarkMode, toggleDarkMode } = useStore();
+  
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    const result = await Swal.fire({
+      title: '¿Cerrar Sesión?',
+      text: "Tendrás que volver a ingresar con tus credenciales.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#9ca3af',
+      confirmButtonText: 'Sí, salir',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+      await supabase.auth.signOut();
+    }
   };
 
   const handleAddClick = () => {
@@ -21,6 +34,15 @@ export const Header = () => {
   const handleThemeToggle = () => {
     hapticFeedback.light();
     toggleDarkMode();
+  };
+
+  const getInitials = (name: string | undefined | null) => {
+    if (!name) return 'US';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
   };
 
   return (
@@ -67,7 +89,7 @@ export const Header = () => {
         {/* Logout Button */}
         <button 
           onClick={handleLogout}
-          className="p-2 text-gray-400 hover:text-expense hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full transition-colors ml-2"
+          className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full transition-colors ml-2"
           title="Cerrar Sesión"
         >
           <LogOut className="w-5 h-5" />
@@ -75,7 +97,7 @@ export const Header = () => {
 
         {/* Avatar */}
         <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center border border-brand/20 cursor-pointer">
-          <span className="text-brand font-bold text-sm">US</span>
+          <span className="text-brand font-bold text-sm">{getInitials(profile?.name)}</span>
         </div>
       </div>
     </header>
