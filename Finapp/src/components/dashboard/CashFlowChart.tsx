@@ -90,7 +90,8 @@ export const CashFlowChart = () => {
                 backgroundColor: isDark ? '#111827' : '#ffffff',
                 color: isDark ? '#F9FAFB' : '#111827'
               }}
-              formatter={(value: number | string | undefined) => [`C$${Number(value || 0).toLocaleString('es-NI')}`, undefined]}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              formatter={(value: any) => [`C$${Number(value || 0).toLocaleString('es-NI')}`, undefined]}
             />
             <Legend 
               iconType="circle" 
