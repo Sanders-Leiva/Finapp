@@ -6,8 +6,9 @@ import { X, Loader2, Landmark, Wallet } from 'lucide-react';
 import clsx from 'clsx';
 import Swal from 'sweetalert2';
 import type { Currency } from '../../utils/currency';
+import { ACCOUNT_ICON_KEYS, getAccountIcon } from '../../utils/icons';
 
-const ICONS = ['🏦', '💳', '💵', '🐷', '📈', '🏢', '💰', '📱'];
+const ICONS = ACCOUNT_ICON_KEYS;
 const COLORS = [
   'text-brand bg-brand-light', 
   'text-blue-500 bg-blue-50', 
@@ -25,7 +26,7 @@ export const AccountModal = () => {
   const [name, setName] = useState('');
   const [type, setType] = useState('bank');
   const [currency, setCurrency] = useState<Currency>('NIO');
-  const [icon, setIcon] = useState('🏦');
+  const [icon, setIcon] = useState('landmark');
   const [color, setColor] = useState(COLORS[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -39,7 +40,7 @@ export const AccountModal = () => {
     } else {
       setName('');
       setType('bank');
-      setIcon('🏦');
+      setIcon('landmark');
       setColor(COLORS[0]);
     }
   }, [editingAccount, isAccountModalOpen]);
@@ -195,11 +196,14 @@ export const AccountModal = () => {
                       type="button"
                       onClick={() => setIcon(i)}
                       className={clsx(
-                        "w-10 h-10 rounded-full flex items-center justify-center text-xl transition-all",
-                        icon === i ? "ring-2 ring-brand ring-offset-2 bg-gray-100 scale-110" : "hover:bg-gray-50 opacity-70 hover:opacity-100"
+                        "w-10 h-10 rounded-full flex items-center justify-center transition-all",
+                        icon === i ? "ring-2 ring-brand ring-offset-2 bg-gray-100 scale-110" : "hover:bg-gray-50 text-gray-500 hover:text-gray-900 opacity-70 hover:opacity-100"
                       )}
                     >
-                      {i}
+                      {(() => {
+                        const IconComp = getAccountIcon(i);
+                        return <IconComp className="w-5 h-5" />;
+                      })()}
                     </button>
                   ))}
                 </div>

@@ -7,6 +7,7 @@ import { formatCurrency } from '../../utils/currency';
 import type { Currency } from '../../utils/currency';
 import clsx from 'clsx';
 import Swal from 'sweetalert2';
+import { getCategoryIcon, getCategoryLabel, getAccountIcon } from '../../utils/icons';
 
 export const TransactionTable = () => {
   const { transactions, setTransactions, accounts, setAccounts } = useStore();
@@ -73,8 +74,11 @@ export const TransactionTable = () => {
           <div key={tx.id} className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-4 transition-all duration-300 active:scale-[0.98]">
             <div className="flex justify-between items-start mb-3">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center text-2xl shrink-0">
-                  {tx.category === 'food' ? '🛒' : tx.category === 'transport' ? '🚗' : tx.category === 'salary' ? '💰' : '📝'}
+                <div className="w-12 h-12 rounded-full bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center shrink-0">
+                  {(() => {
+                    const Icon = getCategoryIcon(tx.category);
+                    return <Icon className={clsx("w-6 h-6", tx.type === 'income' ? 'text-brand' : 'text-expense')} />;
+                  })()}
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900 dark:text-white line-clamp-1">{tx.title}</h4>
@@ -94,7 +98,7 @@ export const TransactionTable = () => {
 
             <div className="flex items-center justify-between border-t border-gray-50 dark:border-gray-800 pt-3 mt-1">
               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-brand-50 dark:bg-pink-900/40 text-brand-dark dark:text-pink-200">
-                {tx.category}
+                {getCategoryLabel(tx.category)}
               </span>
               <div className="flex items-center gap-1">
                 <button 
@@ -143,8 +147,11 @@ export const TransactionTable = () => {
                   {/* 1. Icon & Detail */}
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-brand-light dark:bg-brand-900/20 flex items-center justify-center text-xl shrink-0">
-                        {tx.category === 'food' ? '🛒' : tx.category === 'transport' ? '🚗' : tx.category === 'salary' ? '💰' : '📝'}
+                      <div className="w-10 h-10 rounded-full bg-brand-light dark:bg-brand-900/20 flex items-center justify-center shrink-0">
+                        {(() => {
+                          const Icon = getCategoryIcon(tx.category);
+                          return <Icon className={clsx("w-5 h-5", tx.type === 'income' ? 'text-brand' : 'text-expense')} />;
+                        })()}
                       </div>
                       <div>
                         <p className="font-semibold text-brand-dark dark:text-white">{tx.title}</p>
@@ -156,14 +163,17 @@ export const TransactionTable = () => {
                   {/* 2. Category Badge */}
                   <td className="py-4 px-6">
                     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-brand-light dark:bg-pink-900/40 text-brand-dark dark:text-pink-200">
-                      {tx.category}
+                      {getCategoryLabel(tx.category)}
                     </span>
                   </td>
 
                   {/* 3. Account */}
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-2">
-                      <span>{tx.account?.icon || '🏦'}</span>
+                      {(() => {
+                        const AccIcon = getAccountIcon(tx.account?.icon);
+                        return <AccIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />;
+                      })()}
                       <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">{tx.account?.name || 'Cuenta'}</span>
                     </div>
                   </td>

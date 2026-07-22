@@ -7,6 +7,7 @@ import { formatCurrency } from '../utils/currency';
 import type { Currency } from '../utils/currency';
 import clsx from 'clsx';
 import Swal from 'sweetalert2';
+import { getAccountIcon } from '../utils/icons';
 
 export const Accounts = () => {
   const { accounts, setAccounts } = useStore();
@@ -43,7 +44,7 @@ export const Accounts = () => {
   return (
     <div className="animate-in fade-in duration-500">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-brand-dark">Mis Cuentas</h2>
+        <h2 className="text-2xl font-bold text-brand-dark dark:text-white">Mis Cuentas</h2>
         <button 
           onClick={() => openAccountModal()}
           className="flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark text-white w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 rounded-lg font-medium transition-colors text-sm"
@@ -55,7 +56,7 @@ export const Accounts = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {accounts.map((account) => (
-          <div key={account.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow relative overflow-hidden group">
+          <div key={account.id} className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 hover:shadow-md transition-shadow relative overflow-hidden group">
             {/* Background Decoration */}
             <div className={clsx(
               "absolute -right-8 -top-8 w-24 h-24 rounded-full opacity-10 transition-transform group-hover:scale-110",
@@ -63,8 +64,11 @@ export const Accounts = () => {
             )}></div>
 
             <div className="flex items-start justify-between mb-8 relative z-10">
-              <div className={clsx("w-12 h-12 rounded-xl flex items-center justify-center text-2xl", account.color)}>
-                {account.icon}
+              <div className={clsx("w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm border border-black/5 dark:border-white/5", account.color)}>
+                {(() => {
+                  const AccIcon = getAccountIcon(account.icon);
+                  return <AccIcon className="w-6 h-6" />;
+                })()}
               </div>
               <span className="px-3 py-1 bg-gray-50 text-gray-600 rounded-full text-xs font-semibold capitalize">
                 {account.type === 'bank' ? 'Banco' : 'Efectivo'}
