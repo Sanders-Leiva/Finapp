@@ -3,6 +3,7 @@ import type { User } from '@supabase/supabase-js';
 
 import type { Account, Transaction, Budget, Goal, Reminder } from '../services/api';
 import { api } from '../services/api';
+import { fetchExchangeRate } from '../services/currency';
 
 export interface UserProfile {
   id: string;
@@ -22,6 +23,7 @@ interface AppState {
   budgets: Budget[];
   goals: Goal[];
   reminders: Reminder[];
+  exchangeRate: number; // USD to NIO
   
   isDarkMode: boolean;
   toggleDarkMode: () => void;
@@ -35,6 +37,7 @@ interface AppState {
   setBudgets: (budgets: Budget[]) => void;
   setGoals: (goals: Goal[]) => void;
   setReminders: (reminders: Reminder[]) => void;
+  setExchangeRate: (rate: number) => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -48,6 +51,7 @@ export const useStore = create<AppState>((set, get) => ({
   budgets: [],
   goals: [],
   reminders: [],
+  exchangeRate: 36.6, // Default fallback
   
   isDarkMode: localStorage.getItem('finapp-theme') === 'dark',
   toggleDarkMode: () => {
@@ -73,14 +77,15 @@ export const useStore = create<AppState>((set, get) => ({
     const userId = get().user?.id;
     if (!userId) return;
     try {
-      const [accs, txs, bdgts, gls, rems] = await Promise.all([
+      const [accs, txs, bdgts, gls, rems, rate] = await Promise.all([
         api.getAccounts(userId),
         api.getTransactions(userId),
         api.getBudgets(userId),
         api.getGoals(userId),
-        api.getReminders(userId)
+        api.getReminders(userId),
+        fetchExchangeRate()
       ]);
-      set({ accounts: accs, transactions: txs, budgets: bdgts, goals: gls, reminders: rems });
+      set({ accounts: accs, transactions: txs, budgets: bdgts, goals: gls, reminders: rems, exchangeRate: rate });
     } catch (error) {
       console.error("Error refreshing data:", error);
     }
@@ -93,6 +98,7 @@ export const useStore = create<AppState>((set, get) => ({
   setBudgets: (budgets) => set({ budgets }),
   setGoals: (goals) => set({ goals }),
   setReminders: (reminders) => set({ reminders }),
+  setExchangeRate: (rate) => set({ exchangeRate: rate })
 }));
       
 

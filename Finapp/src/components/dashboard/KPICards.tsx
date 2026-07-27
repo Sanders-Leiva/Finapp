@@ -4,10 +4,15 @@ import { formatCurrency } from '../../utils/currency';
 import clsx from 'clsx';
 
 export const KPICards = () => {
-  const { accounts, transactions } = useStore();
+  const { accounts, transactions, exchangeRate } = useStore();
 
   // Calcular balance total
-  const totalBalance = accounts.reduce((acc, account) => acc + account.balance, 0);
+  const totalBalance = accounts.reduce((acc, account) => {
+    if (account.currency === 'USD') {
+      return acc + (account.balance * exchangeRate);
+    }
+    return acc + account.balance;
+  }, 0);
 
   // Calcular ingresos y gastos del mes actual
   const currentMonth = new Date().getMonth();

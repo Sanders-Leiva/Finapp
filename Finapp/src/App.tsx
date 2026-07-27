@@ -12,6 +12,7 @@ import { ModalProvider } from './context/ModalContext';
 import { useStore } from './store/useStore';
 import { supabase } from './lib/supabase';
 import { api } from './services/api';
+import { fetchExchangeRate } from './services/currency';
 
 import { Loader2 } from 'lucide-react';
 
@@ -34,12 +35,13 @@ function App() {
 
     const fetchAppData = async (userId: string) => {
       try {
-        const [accs, txs, bdgts, gls, rems] = await Promise.all([
+        const [accs, txs, bdgts, gls, rems, rate] = await Promise.all([
           api.getAccounts(userId),
           api.getTransactions(userId),
           api.getBudgets(userId),
           api.getGoals(userId),
-          api.getReminders(userId)
+          api.getReminders(userId),
+          fetchExchangeRate()
         ]);
         if (mounted) {
           useStore.getState().setAccounts(accs);
@@ -47,6 +49,7 @@ function App() {
           useStore.getState().setBudgets(bdgts);
           useStore.getState().setGoals(gls);
           useStore.getState().setReminders(rems);
+          useStore.getState().setExchangeRate(rate);
         }
       } catch (error) {
         console.error("Error fetching app data:", error);

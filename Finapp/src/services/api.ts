@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import Swal from 'sweetalert2';
 import { 
   accountsData, 
   budgetsData, 
@@ -75,6 +76,33 @@ export interface Reminder {
   frequency: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
   created_at: string;
 }
+
+// DTOs
+export type CreateAccountDTO = Omit<Account, 'id' | 'created_at'>;
+export type UpdateAccountDTO = Partial<CreateAccountDTO>;
+
+export type CreateTransactionDTO = Omit<Transaction, 'id' | 'account'>;
+export type UpdateTransactionDTO = Partial<CreateTransactionDTO>;
+
+export type CreateBudgetDTO = Omit<Budget, 'id' | 'created_at'>;
+export type UpdateBudgetDTO = Partial<CreateBudgetDTO>;
+
+export type CreateGoalDTO = Omit<Goal, 'id' | 'created_at'>;
+export type UpdateGoalDTO = Partial<CreateGoalDTO>;
+
+// MANEJO DE ERRORES CENTRALIZADO
+const handleApiError = (error: any, context: string) => {
+  console.error(`Error en ${context}:`, error);
+  Swal.fire({
+    title: 'Error de Conexión',
+    text: `Ocurrió un problema: ${error?.message || 'Error desconocido'}`,
+    icon: 'error',
+    confirmButtonColor: '#14b8a6',
+    confirmButtonText: 'Entendido'
+  });
+  throw error;
+};
+
 // SERVICIO API
 export const api = {
   // --- CONSULTAS ---
@@ -85,28 +113,28 @@ export const api = {
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: true });
-    if (error) throw error;
+    if (error) handleApiError(error, 'getAccounts');
     return data as Account[];
   },
 
-  async createAccount(accountData: any) {
+  async createAccount(accountData: CreateAccountDTO) {
     const { data, error } = await supabase
       .from('accounts')
       .insert([accountData])
       .select('*')
       .single();
-    if (error) throw error;
+    if (error) handleApiError(error, 'createAccount');
     return data as Account;
   },
 
-  async updateAccount(id: string, accountData: any) {
+  async updateAccount(id: string, accountData: UpdateAccountDTO) {
     const { data, error } = await supabase
       .from('accounts')
       .update(accountData)
       .eq('id', id)
       .select('*')
       .single();
-    if (error) throw error;
+    if (error) handleApiError(error, 'updateAccount');
     return data as Account;
   },
 
@@ -115,7 +143,7 @@ export const api = {
       .from('accounts')
       .delete()
       .eq('id', id);
-    if (error) throw error;
+    if (error) handleApiError(error, 'deleteAccount');
     return true;
   },
 
@@ -125,29 +153,29 @@ export const api = {
       .select('*, account:accounts(name, icon, color)')
       .eq('user_id', userId)
       .order('date', { ascending: false });
-    if (error) throw error;
-    return data;
+    if (error) handleApiError(error, 'getTransactions');
+    return data as Transaction[];
   },
 
-  async createTransaction(txData: any) {
+  async createTransaction(txData: CreateTransactionDTO) {
     const { data, error } = await supabase
       .from('transactions')
       .insert([txData])
       .select('*, account:accounts(name, icon, color)')
       .single();
-    if (error) throw error;
-    return data;
+    if (error) handleApiError(error, 'createTransaction');
+    return data as Transaction;
   },
 
-  async updateTransaction(id: string, txData: any) {
+  async updateTransaction(id: string, txData: UpdateTransactionDTO) {
     const { data, error } = await supabase
       .from('transactions')
       .update(txData)
       .eq('id', id)
       .select('*, account:accounts(name, icon, color)')
       .single();
-    if (error) throw error;
-    return data;
+    if (error) handleApiError(error, 'updateTransaction');
+    return data as Transaction;
   },
 
   async deleteTransaction(id: string) {
@@ -155,7 +183,7 @@ export const api = {
       .from('transactions')
       .delete()
       .eq('id', id);
-    if (error) throw error;
+    if (error) handleApiError(error, 'deleteTransaction');
     return true;
   },
 
@@ -166,29 +194,29 @@ export const api = {
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: true });
-    if (error) throw error;
-    return data;
+    if (error) handleApiError(error, 'getBudgets');
+    return data as Budget[];
   },
 
-  async createBudget(budgetData: any) {
+  async createBudget(budgetData: CreateBudgetDTO) {
     const { data, error } = await supabase
       .from('budgets')
       .insert([budgetData])
       .select('*')
       .single();
-    if (error) throw error;
-    return data;
+    if (error) handleApiError(error, 'createBudget');
+    return data as Budget;
   },
 
-  async updateBudget(id: string, budgetData: any) {
+  async updateBudget(id: string, budgetData: UpdateBudgetDTO) {
     const { data, error } = await supabase
       .from('budgets')
       .update(budgetData)
       .eq('id', id)
       .select('*')
       .single();
-    if (error) throw error;
-    return data;
+    if (error) handleApiError(error, 'updateBudget');
+    return data as Budget;
   },
 
   async deleteBudget(id: string) {
@@ -196,7 +224,7 @@ export const api = {
       .from('budgets')
       .delete()
       .eq('id', id);
-    if (error) throw error;
+    if (error) handleApiError(error, 'deleteBudget');
     return true;
   },
 
@@ -207,29 +235,29 @@ export const api = {
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: true });
-    if (error) throw error;
-    return data;
+    if (error) handleApiError(error, 'getGoals');
+    return data as Goal[];
   },
 
-  async createGoal(goalData: any) {
+  async createGoal(goalData: CreateGoalDTO) {
     const { data, error } = await supabase
       .from('goals')
       .insert([goalData])
       .select('*')
       .single();
-    if (error) throw error;
-    return data;
+    if (error) handleApiError(error, 'createGoal');
+    return data as Goal;
   },
 
-  async updateGoal(id: string, goalData: any) {
+  async updateGoal(id: string, goalData: UpdateGoalDTO) {
     const { data, error } = await supabase
       .from('goals')
       .update(goalData)
       .eq('id', id)
       .select('*')
       .single();
-    if (error) throw error;
-    return data;
+    if (error) handleApiError(error, 'updateGoal');
+    return data as Goal;
   },
 
   async deleteGoal(id: string) {
@@ -237,7 +265,7 @@ export const api = {
       .from('goals')
       .delete()
       .eq('id', id);
-    if (error) throw error;
+    if (error) handleApiError(error, 'deleteGoal');
     return true;
   },
 
@@ -248,7 +276,7 @@ export const api = {
       .select('*')
       .eq('user_id', userId)
       .order('due_date', { ascending: true });
-    if (error) throw error;
+    if (error) handleApiError(error, 'getReminders');
     return data as Reminder[];
   },
 
@@ -258,7 +286,7 @@ export const api = {
       .insert([reminderData])
       .select('*')
       .single();
-    if (error) throw error;
+    if (error) handleApiError(error, 'createReminder');
     return data as Reminder;
   },
 
@@ -269,7 +297,7 @@ export const api = {
       .eq('id', id)
       .select('*')
       .single();
-    if (error) throw error;
+    if (error) handleApiError(error, 'updateReminder');
     return data as Reminder;
   },
 
@@ -278,7 +306,7 @@ export const api = {
       .from('reminders')
       .delete()
       .eq('id', id);
-    if (error) throw error;
+    if (error) handleApiError(error, 'deleteReminder');
     return true;
   },
 
@@ -300,7 +328,7 @@ export const api = {
         }))
       )
       .select();
-    if (accError) throw accError;
+    if (accError) handleApiError(accError, 'seedMockData (accounts)');
 
     if (!accounts || accounts.length === 0) return;
 
@@ -322,7 +350,7 @@ export const api = {
     const { error: txError } = await supabase
       .from('transactions')
       .insert(txToInsert);
-    if (txError) throw txError;
+    if (txError) handleApiError(txError, 'seedMockData (transactions)');
 
     // 3. Insertar Presupuestos
     const { error: bgError } = await supabase
@@ -337,7 +365,7 @@ export const api = {
           icon: b.icon
         }))
       );
-    if (bgError) throw bgError;
+    if (bgError) handleApiError(bgError, 'seedMockData (budgets)');
 
     // 4. Insertar Metas
     const { error: goalError } = await supabase
@@ -353,7 +381,7 @@ export const api = {
           icon: g.icon
         }))
       );
-    if (goalError) throw goalError;
+    if (goalError) handleApiError(goalError, 'seedMockData (goals)');
 
     return true;
   }

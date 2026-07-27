@@ -43,12 +43,50 @@ export const CATEGORY_LABELS: Record<string, string> = {
   other: 'Otros'
 };
 
+export const SUB_CATEGORY_LABELS: Record<string, string> = {
+  supermarket: 'Supermercado',
+  restaurants: 'Restaurantes',
+  delivery: 'Delivery',
+  coffee: 'Café',
+  fuel: 'Combustible',
+  uber_taxi: 'Taxi',
+  public_transport: 'Transporte Público',
+  maintenance: 'Mantenimiento',
+  electricity: 'Electricidad',
+  water: 'Agua',
+  internet: 'Internet',
+  phone: 'Teléfono',
+  clothing: 'Ropa',
+  electronics: 'Electrónica',
+  gifts: 'Regalos',
+  pharmacy: 'Farmacia',
+  doctor: 'Doctor',
+  insurance: 'Seguro',
+  transfer: 'Transferencia'
+};
+
 export const getCategoryIcon = (category: string) => {
-  return CATEGORY_ICONS[category] || HelpCircle;
+  if (!category) return HelpCircle;
+  const parentCategory = category.split(':')[0];
+  return CATEGORY_ICONS[parentCategory] || HelpCircle;
+};
+
+export const getSubCategoryLabel = (sub: string) => {
+  if (!sub) return '';
+  return SUB_CATEGORY_LABELS[sub] || (sub.charAt(0).toUpperCase() + sub.slice(1).replace(/_/g, ' '));
 };
 
 export const getCategoryLabel = (category: string) => {
-  return CATEGORY_LABELS[category] || category;
+  if (!category) return '';
+  const parts = category.split(':');
+  const parent = parts[0];
+  const child = parts[1];
+  
+  const parentLabel = CATEGORY_LABELS[parent] || parent;
+  if (child) {
+    return `${parentLabel} > ${getSubCategoryLabel(child)}`;
+  }
+  return parentLabel;
 };
 
 // --- ACCOUNT MAPPINGS ---

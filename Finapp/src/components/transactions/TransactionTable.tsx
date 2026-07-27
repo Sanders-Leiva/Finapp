@@ -8,9 +8,14 @@ import type { Currency } from '../../utils/currency';
 import clsx from 'clsx';
 import Swal from 'sweetalert2';
 import { getCategoryIcon, getCategoryLabel, getAccountIcon } from '../../utils/icons';
+import type { Transaction } from '../../services/api';
 
-export const TransactionTable = () => {
-  const { transactions, setTransactions, accounts, setAccounts } = useStore();
+interface TransactionTableProps {
+  transactions: Transaction[];
+}
+
+export const TransactionTable = ({ transactions: filteredTransactions }: TransactionTableProps) => {
+  const { transactions: allTransactions, setTransactions, accounts, setAccounts } = useStore();
   const { openTransactionModal } = useModal();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
@@ -30,7 +35,7 @@ export const TransactionTable = () => {
     
     setIsDeleting(id);
     try {
-      const txToDelete = transactions.find(t => t.id === id);
+      const txToDelete = allTransactions.find(t => t.id === id);
       
       if (txToDelete) {
         const account = accounts.find(a => a.id === txToDelete.account_id);
@@ -45,7 +50,7 @@ export const TransactionTable = () => {
       }
 
       await api.deleteTransaction(id);
-      setTransactions(transactions.filter(t => t.id !== id));
+      setTransactions(allTransactions.filter(t => t.id !== id));
       Swal.fire({
         title: '¡Eliminada!',
         text: 'La transacción ha sido eliminada.',
@@ -70,7 +75,7 @@ export const TransactionTable = () => {
     <>
       {/* 📱 Mobile View (Cards) */}
       <div className="md:hidden space-y-3">
-        {transactions.map((tx) => (
+        {filteredTransactions.map((tx) => (
           <div key={tx.id} className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-4 transition-all duration-300 active:scale-[0.98]">
             <div className="flex justify-between items-start mb-3">
               <div className="flex items-center gap-3">
@@ -120,11 +125,7 @@ export const TransactionTable = () => {
             </div>
           </div>
         ))}
-        {transactions.length === 0 && (
-          <div className="text-center py-10 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800">
-            <p className="text-gray-500 dark:text-gray-400">No hay transacciones aún.</p>
-          </div>
-        )}
+        {/* Note: Empty states are handled in parent Transactions.tsx now */}
       </div>
 
       {/* 💻 Desktop View (Table) */}
@@ -141,7 +142,7 @@ export const TransactionTable = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {transactions.map((tx) => (
+              {filteredTransactions.map((tx) => (
                 <tr key={tx.id} className="group hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
                   
                   {/* 1. Icon & Detail */}
@@ -212,13 +213,7 @@ export const TransactionTable = () => {
 
                 </tr>
               ))}
-              {transactions.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="py-8 text-center text-gray-500 dark:text-gray-400">
-                    No hay transacciones aún.
-                  </td>
-                </tr>
-              )}
+              {/* Note: Empty states are handled in parent Transactions.tsx now */}
             </tbody>
           </table>
         </div>

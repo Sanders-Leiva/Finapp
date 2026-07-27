@@ -2,10 +2,20 @@ import { useState, useEffect } from 'react';
 import { useModal } from '../../context/ModalContext';
 import { useStore } from '../../store/useStore';
 import { api } from '../../services/api';
-import { X, ChevronDown, Loader2 } from 'lucide-react';
+import { X, ChevronDown, Loader2, Sparkles } from 'lucide-react';
 import clsx from 'clsx';
 import Swal from 'sweetalert2';
+import { GoogleGenAI } from '@google/genai';
 import type { Currency } from '../../utils/currency';
+import { getSubCategoryLabel } from '../../utils/icons';
+
+const SUB_CATEGORIES: Record<string, string[]> = {
+  food: ['supermarket', 'restaurants', 'delivery', 'coffee'],
+  transport: ['fuel', 'uber_taxi', 'public_transport', 'maintenance'],
+  utilities: ['electricity', 'water', 'internet', 'phone'],
+  shopping: ['clothing', 'electronics', 'gifts'],
+  health: ['pharmacy', 'doctor', 'insurance']
+};
 
 export const TransactionModal = () => {
   const { isTransactionModalOpen, closeTransactionModal, editingTransaction } = useModal();
@@ -16,10 +26,13 @@ export const TransactionModal = () => {
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [category, setCategory] = useState('');
+  const [subCategory, setSubCategory] = useState('');
   const [accountId, setAccountId] = useState('');
   const [destinationAccountId, setDestinationAccountId] = useState('');
   const [title, setTitle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [aiInput, setAiInput] = useState('');
+  const [isParsingAI, setIsParsingAI] = useState(false);
 
   // Pre-fill if editing or set defaults
   useEffect(() => {
@@ -29,7 +42,9 @@ export const TransactionModal = () => {
         setCurrency(editingTransaction.currency as Currency);
         setAmount(editingTransaction.amount.toString());
         setDate(editingTransaction.date.split('T')[0]);
-        setCategory(editingTransaction.category);
+        const parts = editingTransaction.category.split(':');
+        setCategory(parts[0]);
+        setSubCategory(parts[1] || '');
         setAccountId(editingTransaction.account_id);
         setTitle(editingTransaction.title);
       } else {
@@ -46,12 +61,72 @@ export const TransactionModal = () => {
             setDestinationAccountId(accounts[0].id);
           }
         }
-        setCategory(type === 'expense' ? 'food' : (type === 'income' ? 'salary' : 'transfer'));
+        const defaultCat = type === 'expense' ? 'food' : (type === 'income' ? 'salary' : 'transfer');
+        setCategory(defaultCat);
+        setSubCategory('');
       }
     }
   }, [editingTransaction, isTransactionModalOpen, accounts]);
 
   if (!isTransactionModalOpen) return null;
+
+  const handleAIParse = async () => {
+    if (!aiInput.trim()) return;
+    setIsParsingAI(true);
+    try {
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) throw new Error("API Key faltante");
+      
+      const ai = new GoogleGenAI({ apiKey });
+      const prompt = `
+        Analiza el siguiente texto y extrae los datos para una transacción financiera.
+        Texto: "${aiInput}"
+        
+        Devuelve SOLO un objeto JSON válido con las siguientes claves y nada más:
+        - "amount": número (el monto).
+        - "type": "income" o "expense" o "transfer".
+        - "category": una categoría principal válida (food, transport, utilities, shopping, health, education, rent, entertainment, salary, freelance, other, transfer).
+        - "subCategory": una sub-categoría válida si aplica (supermarket, restaurants, delivery, coffee, fuel, uber_taxi, public_transport, maintenance, electricity, water, internet, phone, clothing, electronics, gifts, pharmacy, doctor, insurance). Déjalo vacío "" si no aplica.
+        - "title": un título corto y descriptivo (ej. "McDonalds").
+        - "currency": "NIO" o "USD". Asume "NIO" por defecto si no se menciona dólares o $.
+        
+        No incluyas markdown como \`\`\`json, devuelve únicamente el JSON raw.
+      `;
+      
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.5-flash',
+        contents: prompt
+      });
+      
+      let text = response.text || '';
+      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      
+      const data = JSON.parse(text);
+      
+      if (data.amount) setAmount(data.amount.toString());
+      if (data.type) setType(data.type as any);
+      if (data.category) setCategory(data.category);
+      if (data.subCategory) setSubCategory(data.subCategory);
+      if (data.title) setTitle(data.title);
+      if (data.currency) setCurrency(data.currency as any);
+      
+      setAiInput('');
+      Swal.fire({
+        title: '¡Magia!',
+        text: 'Formulario autocompletado.',
+        icon: 'success',
+        timer: 1000,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+      });
+    } catch (error) {
+      console.error(error);
+      Swal.fire('Error', 'No pude entender el texto o falló la IA. Intenta ser más claro.', 'error');
+    } finally {
+      setIsParsingAI(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,13 +135,12 @@ export const TransactionModal = () => {
     setIsSubmitting(true);
     try {
       const numericAmount = parseFloat(amount);
-      const payload = {
+      const finalCategory = subCategory ? `${category}:${subCategory}` : category;
+      const basePayload = {
         user_id: user.id,
-        account_id: accountId,
         title,
         amount: numericAmount,
-        type,
-        category,
+        category: finalCategory,
         currency,
         date
       };
@@ -108,7 +182,11 @@ export const TransactionModal = () => {
         }
 
         // --- 4. UPDATE TRANSACTION ---
-        const updatedTx = await api.updateTransaction(editingTransaction.id, payload);
+        const updatedTx = await api.updateTransaction(editingTransaction.id, {
+          ...basePayload,
+          account_id: accountId,
+          type: type as 'income' | 'expense'
+        });
         setAccounts(newAccounts);
         setTransactions(transactions.map(t => t.id === editingTransaction.id ? (updatedTx as import('../../services/api').Transaction) : t));
       } else {
@@ -134,13 +212,14 @@ export const TransactionModal = () => {
             setAccounts(newAccountsState);
 
             const txExpense = await api.createTransaction({
-              ...payload,
+              ...basePayload,
+              account_id: accountId,
               type: 'expense',
               category: 'transfer'
             });
             
             const txIncome = await api.createTransaction({
-              ...payload,
+              ...basePayload,
               account_id: destinationAccountId,
               type: 'income',
               category: 'transfer'
@@ -159,7 +238,11 @@ export const TransactionModal = () => {
             setAccounts(accounts.map(a => a.id === accountId ? { ...a, balance: newBalance } : a));
           }
 
-          const newTx = await api.createTransaction(payload);
+          const newTx = await api.createTransaction({
+            ...basePayload,
+            account_id: accountId,
+            type: type as 'income' | 'expense'
+          });
           setTransactions([newTx as import('../../services/api').Transaction, ...transactions]);
         }
       }
@@ -172,7 +255,7 @@ export const TransactionModal = () => {
         timer: 1500,
         showConfirmButton: false
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating transaction", error);
       Swal.fire('Error', 'Hubo un error al guardar la transacción.', 'error');
     } finally {
@@ -222,10 +305,43 @@ export const TransactionModal = () => {
             </div>
           ) : (
             <>
+              {/* AI Quick Entry */}
+              {!editingTransaction && (
+                <div className="mb-6 relative group">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-brand to-purple-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                  <div className="relative flex items-center bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-1 shadow-sm">
+                    <div className="pl-3 pr-2 text-brand">
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <input
+                      type="text"
+                      value={aiInput}
+                      onChange={(e) => setAiInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAIParse();
+                        }
+                      }}
+                      placeholder="Ej: Gasté 200 en McDonald's..."
+                      className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 py-3"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAIParse}
+                      disabled={isParsingAI || !aiInput.trim()}
+                      className="ml-2 mr-1 px-4 py-2 bg-brand/10 hover:bg-brand/20 text-brand font-semibold text-xs rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2 whitespace-nowrap"
+                    >
+                      {isParsingAI ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Autocompletar'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Type Toggle */}
               <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mb-6">
                 <button
-                  onClick={() => { setType('income'); setCategory('salary'); }}
+                  onClick={() => { setType('income'); setCategory('salary'); setSubCategory(''); }}
                   className={clsx(
                     "flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all",
                     type === 'income' ? "bg-white dark:bg-gray-700 text-brand shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
@@ -234,7 +350,7 @@ export const TransactionModal = () => {
                   INGRESO
                 </button>
                 <button
-                  onClick={() => { setType('expense'); setCategory('food'); }}
+                  onClick={() => { setType('expense'); setCategory('food'); setSubCategory(''); }}
                   className={clsx(
                     "flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all",
                     type === 'expense' ? "bg-white dark:bg-gray-700 text-expense shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
@@ -244,7 +360,7 @@ export const TransactionModal = () => {
                 </button>
                 {!editingTransaction && (
                   <button
-                    onClick={() => { setType('transfer'); setCategory('transfer'); }}
+                    onClick={() => { setType('transfer'); setCategory('transfer'); setSubCategory(''); }}
                     className={clsx(
                       "flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all",
                       type === 'transfer' ? "bg-white dark:bg-gray-700 text-blue-500 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
@@ -322,7 +438,10 @@ export const TransactionModal = () => {
                     <div className="relative">
                       <select 
                         value={category}
-                        onChange={(e) => setCategory(e.target.value)}
+                        onChange={(e) => {
+                          setCategory(e.target.value);
+                          setSubCategory('');
+                        }}
                         className="appearance-none block w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-colors cursor-pointer"
                       >
                         {type === 'expense' ? (
@@ -355,8 +474,32 @@ export const TransactionModal = () => {
                     </div>
                   </div>
 
+                  {/* Sub-Category (Only if available) */}
+                  {SUB_CATEGORIES[category] && SUB_CATEGORIES[category].length > 0 && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sub-Categoría</label>
+                      <div className="relative">
+                        <select 
+                          value={subCategory}
+                          onChange={(e) => setSubCategory(e.target.value)}
+                          className="appearance-none block w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-colors cursor-pointer"
+                        >
+                          <option value="">General</option>
+                          {SUB_CATEGORIES[category].map(sub => (
+                            <option key={sub} value={sub}>
+                              {getSubCategoryLabel(sub)}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-400">
+                          <ChevronDown className="w-4 h-4" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Account */}
-                  <div className={type === 'transfer' ? 'col-span-2 grid grid-cols-2 gap-4' : ''}>
+                  <div className={type === 'transfer' ? 'col-span-2 grid grid-cols-2 gap-4' : 'col-span-2 sm:col-span-1'}>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         {type === 'transfer' ? 'Desde (Cuenta Origen)' : 'Cuenta'}
