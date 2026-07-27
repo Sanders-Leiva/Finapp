@@ -32,6 +32,9 @@ interface ModalContextType {
   editingReminder: Reminder | null;
   openReminderModal: (reminder?: Reminder) => void;
   closeReminderModal: () => void;
+
+  initialAIData: any;
+  setInitialAIData: (data: any) => void;
 }
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);
@@ -54,6 +57,8 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
 
   const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
+
+  const [initialAIData, setInitialAIData] = useState<any>(null);
 
 
   const openTransactionModal = (tx?: Transaction) => {
@@ -142,6 +147,8 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
         editingReminder,
         openReminderModal,
         closeReminderModal,
+        initialAIData,
+        setInitialAIData,
       }}
     >
       {children}
