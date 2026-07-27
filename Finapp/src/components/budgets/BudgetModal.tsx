@@ -53,7 +53,8 @@ export const BudgetModal = () => {
         total_amount: parseFloat(amount),
         spent_amount: editingBudget ? editingBudget.spent_amount : 0,
         currency,
-        icon
+        icon,
+        period: 'monthly' as const
       };
 
       if (editingBudget) {

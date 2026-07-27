@@ -79,8 +79,8 @@ export const AccountModal = () => {
         color,
         ...(type === 'credit' && {
           credit_limit: parseFloat(creditLimit) || 0,
-          cutoff_date: parseInt(cutoffDate) || null,
-          payment_date: parseInt(paymentDate) || null
+          cutoff_date: parseInt(cutoffDate) || undefined,
+          payment_date: parseInt(paymentDate) || undefined
         })
       };
 
@@ -96,7 +96,7 @@ export const AccountModal = () => {
             account_id: newAcc.id,
             title: 'Saldo Inicial',
             amount: Math.abs(startBalance),
-            type: (type === 'credit' || startBalance < 0) ? 'expense' : 'income',
+            type: (type === 'credit' || startBalance < 0) ? 'expense' : 'income' as 'expense' | 'income',
             category: 'other',
             currency,
             date: new Date().toISOString().split('T')[0]

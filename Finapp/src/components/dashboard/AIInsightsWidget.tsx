@@ -65,7 +65,7 @@ export const AIInsightsWidget = () => {
         contents: prompt,
       });
 
-      setInsight(response.text);
+      setInsight(response.text || null);
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {

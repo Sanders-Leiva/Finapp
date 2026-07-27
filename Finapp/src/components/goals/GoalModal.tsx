@@ -63,7 +63,8 @@ export const GoalModal = () => {
         current_amount: editingGoal ? editingGoal.current_amount : 0,
         target_date: new Date(targetDate).toISOString(),
         currency,
-        icon
+        icon,
+        color: '#10B981'
       };
 
       if (editingGoal) {
