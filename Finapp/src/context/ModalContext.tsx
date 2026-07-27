@@ -1,6 +1,6 @@
 import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { Transaction, Account, Budget, Goal } from '../services/api';
+import type { Transaction, Account, Budget, Goal, Reminder } from '../services/api';
 
 interface ModalContextType {
   isTransactionModalOpen: boolean;
@@ -27,6 +27,11 @@ interface ModalContextType {
   contributingGoal: Goal | null;
   openGoalContributionModal: (goal: Goal) => void;
   closeGoalContributionModal: () => void;
+
+  isReminderModalOpen: boolean;
+  editingReminder: Reminder | null;
+  openReminderModal: (reminder?: Reminder) => void;
+  closeReminderModal: () => void;
 }
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);
@@ -46,6 +51,10 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
 
   const [isGoalContributionModalOpen, setIsGoalContributionModalOpen] = useState(false);
   const [contributingGoal, setContributingGoal] = useState<Goal | null>(null);
+
+  const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
+  const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
+
 
   const openTransactionModal = (tx?: Transaction) => {
     if (tx) setEditingTransaction(tx);
@@ -96,6 +105,16 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     setTimeout(() => setContributingGoal(null), 200);
   };
 
+  const openReminderModal = (reminder?: Reminder) => {
+    if (reminder) setEditingReminder(reminder);
+    else setEditingReminder(null);
+    setIsReminderModalOpen(true);
+  };
+  const closeReminderModal = () => {
+    setIsReminderModalOpen(false);
+    setTimeout(() => setEditingReminder(null), 200);
+  };
+
   return (
     <ModalContext.Provider
       value={{
@@ -119,6 +138,10 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
         contributingGoal,
         openGoalContributionModal,
         closeGoalContributionModal,
+        isReminderModalOpen,
+        editingReminder,
+        openReminderModal,
+        closeReminderModal,
       }}
     >
       {children}

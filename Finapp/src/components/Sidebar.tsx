@@ -4,7 +4,8 @@ import {
   ArrowRightLeft, 
   Wallet, 
   PieChart, 
-  Target
+  Target,
+  CalendarDays
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -14,6 +15,7 @@ const navItems = [
   { name: 'Cuentas', path: '/accounts', icon: Wallet },
   { name: 'Presupuestos', path: '/budgets', icon: PieChart },
   { name: 'Metas', path: '/goals', icon: Target },
+  { name: 'Calendario', path: '/calendar', icon: CalendarDays },
 ];
 
 export const Sidebar = () => {

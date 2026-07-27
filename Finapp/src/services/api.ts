@@ -62,6 +62,19 @@ export interface Goal {
   color: string;
   created_at: string;
 }
+
+export interface Reminder {
+  id: string;
+  user_id: string;
+  title: string;
+  amount: number;
+  currency: string;
+  due_date: string;
+  is_paid: boolean;
+  paid_dates?: string[];
+  frequency: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+  created_at: string;
+}
 // SERVICIO API
 export const api = {
   // --- CONSULTAS ---
@@ -222,6 +235,47 @@ export const api = {
   async deleteGoal(id: string) {
     const { error } = await supabase
       .from('goals')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+    return true;
+  },
+
+  // --- REMINDERS ---
+  async getReminders(userId: string) {
+    const { data, error } = await supabase
+      .from('reminders')
+      .select('*')
+      .eq('user_id', userId)
+      .order('due_date', { ascending: true });
+    if (error) throw error;
+    return data as Reminder[];
+  },
+
+  async createReminder(reminderData: Omit<Reminder, 'id' | 'created_at'>) {
+    const { data, error } = await supabase
+      .from('reminders')
+      .insert([reminderData])
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data as Reminder;
+  },
+
+  async updateReminder(id: string, reminderData: Partial<Reminder>) {
+    const { data, error } = await supabase
+      .from('reminders')
+      .update(reminderData)
+      .eq('id', id)
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data as Reminder;
+  },
+
+  async deleteReminder(id: string) {
+    const { error } = await supabase
+      .from('reminders')
       .delete()
       .eq('id', id);
     if (error) throw error;

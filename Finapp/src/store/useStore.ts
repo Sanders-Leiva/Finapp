@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { User } from '@supabase/supabase-js';
 
-import type { Account, Transaction, Budget, Goal } from '../services/api';
+import type { Account, Transaction, Budget, Goal, Reminder } from '../services/api';
 import { api } from '../services/api';
 
 export interface UserProfile {
@@ -21,6 +21,7 @@ interface AppState {
   transactions: Transaction[];
   budgets: Budget[];
   goals: Goal[];
+  reminders: Reminder[];
   
   isDarkMode: boolean;
   toggleDarkMode: () => void;
@@ -33,6 +34,7 @@ interface AppState {
   setTransactions: (transactions: Transaction[]) => void;
   setBudgets: (budgets: Budget[]) => void;
   setGoals: (goals: Goal[]) => void;
+  setReminders: (reminders: Reminder[]) => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -45,6 +47,7 @@ export const useStore = create<AppState>((set, get) => ({
   transactions: [],
   budgets: [],
   goals: [],
+  reminders: [],
   
   isDarkMode: localStorage.getItem('finapp-theme') === 'dark',
   toggleDarkMode: () => {
@@ -70,13 +73,14 @@ export const useStore = create<AppState>((set, get) => ({
     const userId = get().user?.id;
     if (!userId) return;
     try {
-      const [accs, txs, bdgts, gls] = await Promise.all([
+      const [accs, txs, bdgts, gls, rems] = await Promise.all([
         api.getAccounts(userId),
         api.getTransactions(userId),
         api.getBudgets(userId),
-        api.getGoals(userId)
+        api.getGoals(userId),
+        api.getReminders(userId)
       ]);
-      set({ accounts: accs, transactions: txs, budgets: bdgts, goals: gls });
+      set({ accounts: accs, transactions: txs, budgets: bdgts, goals: gls, reminders: rems });
     } catch (error) {
       console.error("Error refreshing data:", error);
     }
@@ -88,6 +92,7 @@ export const useStore = create<AppState>((set, get) => ({
   setTransactions: (transactions) => set({ transactions }),
   setBudgets: (budgets) => set({ budgets }),
   setGoals: (goals) => set({ goals }),
+  setReminders: (reminders) => set({ reminders }),
 }));
       
 

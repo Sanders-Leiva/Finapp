@@ -6,6 +6,7 @@ import { Transactions } from './pages/Transactions';
 import { Accounts } from './pages/Accounts';
 import { Budgets } from './pages/Budgets';
 import { Goals } from './pages/Goals';
+import { Calendar } from './pages/Calendar';
 import { Auth } from './pages/Auth';
 import { ModalProvider } from './context/ModalContext';
 import { useStore } from './store/useStore';
@@ -33,17 +34,19 @@ function App() {
 
     const fetchAppData = async (userId: string) => {
       try {
-        const [accs, txs, bdgts, gls] = await Promise.all([
+        const [accs, txs, bdgts, gls, rems] = await Promise.all([
           api.getAccounts(userId),
           api.getTransactions(userId),
           api.getBudgets(userId),
-          api.getGoals(userId)
+          api.getGoals(userId),
+          api.getReminders(userId)
         ]);
         if (mounted) {
           useStore.getState().setAccounts(accs);
           useStore.getState().setTransactions(txs);
           useStore.getState().setBudgets(bdgts);
           useStore.getState().setGoals(gls);
+          useStore.getState().setReminders(rems);
         }
       } catch (error) {
         console.error("Error fetching app data:", error);
@@ -129,6 +132,7 @@ function App() {
             <Route path="accounts" element={<Accounts />} />
             <Route path="budgets" element={<Budgets />} />
             <Route path="goals" element={<Goals />} />
+            <Route path="calendar" element={<Calendar />} />
           </Route>
         </Routes>
       </BrowserRouter>

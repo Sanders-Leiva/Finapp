@@ -7,6 +7,7 @@ import { AccountModal } from '../components/accounts/AccountModal';
 import { BudgetModal } from '../components/budgets/BudgetModal';
 import { GoalModal } from '../components/goals/GoalModal';
 import { GoalContributionModal } from '../components/goals/GoalContributionModal';
+import { ReminderModal } from '../components/calendar/ReminderModal';
 
 export const MainLayout = () => {
   return (
@@ -30,6 +31,7 @@ export const MainLayout = () => {
         <BudgetModal />
         <GoalModal />
         <GoalContributionModal />
+        <ReminderModal />
         <BottomNav />
       </div>
     </div>
