@@ -5,6 +5,7 @@ import { useStore } from '../../store/useStore';
 import { api } from '../../services/api';
 import clsx from 'clsx';
 import { hapticFeedback } from '../../utils/haptics';
+import Swal from 'sweetalert2';
 
 export const ReminderModal = () => {
   const { isReminderModalOpen, closeReminderModal, editingReminder } = useModal();
@@ -22,7 +23,7 @@ export const ReminderModal = () => {
 
   useEffect(() => {
     if (isReminderModalOpen) {
-      if (editingReminder) {
+      if (editingReminder && editingReminder.id) {
         setFormData({
           title: editingReminder.title,
           amount: editingReminder.amount.toString(),
@@ -38,7 +39,7 @@ export const ReminderModal = () => {
           title: '',
           amount: '',
           currency: 'NIO',
-          due_date: new Date().toISOString().split('T')[0],
+          due_date: editingReminder?.due_date || new Date().toISOString().split('T')[0],
           is_paid: false,
           frequency: 'none',
         });
@@ -75,7 +76,7 @@ export const ReminderModal = () => {
         frequency: formData.frequency,
       };
 
-      if (editingReminder) {
+      if (editingReminder && editingReminder.id) {
         await api.updateReminder(editingReminder.id, data);
       } else {
         await api.createReminder(data);
@@ -93,17 +94,48 @@ export const ReminderModal = () => {
   };
 
   const handleDelete = async () => {
-    if (!editingReminder) return;
-    if (confirm('¿Estás seguro de que deseas eliminar este recordatorio?')) {
+    if (!editingReminder || !editingReminder.id) return;
+    
+    const result = await Swal.fire({
+      title: '¿Eliminar Recordatorio?',
+      text: "Esta acción no se puede deshacer.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#9ca3af',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      customClass: {
+        popup: 'rounded-3xl dark:bg-gray-900',
+        title: 'text-gray-900 dark:text-white',
+        htmlContainer: 'text-gray-600 dark:text-gray-400'
+      }
+    });
+
+    if (result.isConfirmed) {
       setIsSubmitting(true);
       try {
         await api.deleteReminder(editingReminder.id);
         await refreshData();
         hapticFeedback.success();
         closeReminderModal();
+        Swal.fire({
+          title: 'Eliminado',
+          text: 'El recordatorio ha sido eliminado.',
+          icon: 'success',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          customClass: {
+            popup: 'dark:bg-gray-800'
+          }
+        });
       } catch (error) {
         console.error('Error deleting reminder:', error);
         hapticFeedback.heavy();
+        Swal.fire('Error', 'No se pudo eliminar el recordatorio.', 'error');
       } finally {
         setIsSubmitting(false);
       }
@@ -122,7 +154,7 @@ export const ReminderModal = () => {
       <div className="relative w-full max-w-lg bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-gray-100 dark:border-gray-800">
         <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            {editingReminder ? 'Editar Recordatorio' : 'Nuevo Recordatorio'}
+            {editingReminder && editingReminder.id ? 'Editar Recordatorio' : 'Nuevo Recordatorio'}
           </h2>
           <button
             onClick={closeReminderModal}
@@ -241,7 +273,7 @@ export const ReminderModal = () => {
           </label>
 
           <div className="flex gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
-            {editingReminder && (
+            {editingReminder && editingReminder.id && (
               <button
                 type="button"
                 onClick={handleDelete}
@@ -256,7 +288,7 @@ export const ReminderModal = () => {
               disabled={isSubmitting}
               className="flex-1 px-6 py-3 text-sm font-medium text-white bg-brand rounded-xl hover:bg-brand-600 shadow-lg shadow-brand/25 transition-all active:scale-[0.98] disabled:opacity-50"
             >
-              {isSubmitting ? 'Guardando...' : editingReminder ? 'Guardar Cambios' : 'Crear Recordatorio'}
+              {isSubmitting ? 'Guardando...' : (editingReminder && editingReminder.id) ? 'Guardar Cambios' : 'Crear Recordatorio'}
             </button>
           </div>
         </form>
