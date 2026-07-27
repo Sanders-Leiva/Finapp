@@ -67,7 +67,6 @@ export const TransactionModal = () => {
             setDestinationAccountId(accounts[0].id);
           }
         }
-        const defaultCat = type === 'expense' ? 'food' : (type === 'income' ? 'salary' : 'transfer');
         setCategory('other');
         setSubCategory('');
       }
