@@ -17,7 +17,7 @@ const SUB_CATEGORIES: Record<string, string[]> = {
 };
 
 export const TransactionModal = () => {
-  const { isTransactionModalOpen, closeTransactionModal, editingTransaction, initialAIData, setInitialAIData } = useModal();
+  const { isTransactionModalOpen, closeTransactionModal, editingTransaction, initialAIData } = useModal();
   const { user, accounts, setAccounts, transactions, setTransactions } = useStore();
   
   const [type, setType] = useState<'income' | 'expense' | 'transfer'>('expense');
@@ -52,11 +52,11 @@ export const TransactionModal = () => {
         if (data.subCategory) setSubCategory(data.subCategory);
         if (data.title) setTitle(data.title);
         if (data.currency) setCurrency(data.currency as any);
-        setInitialAIData(null); // Consumed
       } else {
         setAmount('');
         setTitle('');
-        setDate(new Date().toISOString().split('T')[0]);
+        setDate(new Date().toISOString().split('T')[0]); // YYYY-MM-DD
+        setCurrency('NIO');
         
         // Ensure defaults are set
         if (accounts.length > 0) {
@@ -71,7 +71,8 @@ export const TransactionModal = () => {
         setSubCategory('');
       }
     }
-  }, [editingTransaction, isTransactionModalOpen, accounts, initialAIData, setInitialAIData, type]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isTransactionModalOpen]);
 
   if (!isTransactionModalOpen) return null;
 

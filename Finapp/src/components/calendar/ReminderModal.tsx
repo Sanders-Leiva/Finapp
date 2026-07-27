@@ -8,7 +8,7 @@ import { hapticFeedback } from '../../utils/haptics';
 import Swal from 'sweetalert2';
 
 export const ReminderModal = () => {
-  const { isReminderModalOpen, closeReminderModal, editingReminder, initialAIData, setInitialAIData } = useModal();
+  const { isReminderModalOpen, closeReminderModal, editingReminder, initialAIData } = useModal();
   const { user, refreshData } = useStore();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,19 +43,19 @@ export const ReminderModal = () => {
           is_paid: false,
           frequency: 'none',
         });
-        setInitialAIData(null);
       } else {
         setFormData({
           title: '',
           amount: '',
           currency: 'NIO',
-          due_date: editingReminder?.due_date || new Date().toISOString().split('T')[0],
+          due_date: new Date().toISOString().split('T')[0],
           is_paid: false,
           frequency: 'none',
         });
       }
     }
-  }, [editingReminder, isReminderModalOpen, initialAIData, setInitialAIData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isReminderModalOpen]);
 
   if (!isReminderModalOpen) return null;
 

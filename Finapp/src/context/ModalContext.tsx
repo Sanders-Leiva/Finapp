@@ -68,7 +68,10 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
   };
   const closeTransactionModal = () => {
     setIsTransactionModalOpen(false);
-    setTimeout(() => setEditingTransaction(null), 200); // clear after animation
+    setTimeout(() => {
+      setEditingTransaction(null);
+      setInitialAIData(null);
+    }, 200); // clear after animation
   };
 
   const openAccountModal = (acc?: Account) => {
@@ -117,7 +120,10 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
   };
   const closeReminderModal = () => {
     setIsReminderModalOpen(false);
-    setTimeout(() => setEditingReminder(null), 200);
+    setTimeout(() => {
+      setEditingReminder(null);
+      setInitialAIData(null);
+    }, 200);
   };
 
   return (
